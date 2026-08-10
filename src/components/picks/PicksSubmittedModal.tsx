@@ -96,7 +96,7 @@ export default function PicksSubmittedModal({
             onClick={onClose}
             className="mt-8 w-full rounded-2xl bg-gradient-to-r from-green-950 to-green-800 px-6 py-4 text-lg font-black uppercase tracking-wide text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl"
           >
-            AWESOME!
+            LET'S GEAUX!!!!
           </button>
 
         </div>
