@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import {
   getPlayers,
   createPlayer,
-  deletePlayer,
+  deletePlayerCascade,
   resetPlayerPin,
 } from "@/lib/players";
 
@@ -51,6 +51,8 @@ export default function PlayersAdminPage() {
 
 
 
+
+
   useEffect(() => {
 
     loadPlayers();
@@ -74,24 +76,38 @@ export default function PlayersAdminPage() {
     }
 
 
-    await createPlayer({
+    try {
 
-      name,
-
-      email,
-
-      pin,
-
-    });
+      await createPlayer({
+        name,
+        email,
+        pin,
+      });
 
 
-    setName("");
+      setName("");
 
-    setEmail("");
+      setEmail("");
 
-    setPin("");
+      setPin("");
 
-    loadPlayers();
+
+      await loadPlayers();
+
+
+    } catch (error) {
+
+      console.error(
+        "Create player failed:",
+        error
+      );
+
+
+      alert(
+        "Unable to create player."
+      );
+
+    }
 
   }
 
@@ -129,14 +145,16 @@ export default function PlayersAdminPage() {
       );
 
 
-      loadPlayers();
+      await loadPlayers();
 
 
     } catch (error) {
 
       if (error instanceof Error) {
 
-        alert(error.message);
+        alert(
+          error.message
+        );
 
       }
 
@@ -149,24 +167,60 @@ export default function PlayersAdminPage() {
 
 
   async function handleDelete(
-    id: string
+    player: Player
   ) {
 
-    if (
-      !confirm(
-        "Delete this player?"
-      )
-    ) {
+    const confirmed =
+      confirm(
+        `Delete ${player.name} and all contest picks?`
+      );
+
+
+    if (!confirmed) {
 
       return;
 
     }
 
 
-    await deletePlayer(id);
+    try {
+
+      await deletePlayerCascade(
+        player.id
+      );
 
 
-    loadPlayers();
+      alert(
+        "Player deleted successfully."
+      );
+
+
+      await loadPlayers();
+
+
+    } catch (error) {
+
+      console.error(
+        "Delete player failed:",
+        error
+      );
+
+
+      if (error instanceof Error) {
+
+        alert(
+          error.message
+        );
+
+      } else {
+
+        alert(
+          "Unable to delete player."
+        );
+
+      }
+
+    }
 
   }
 
@@ -358,9 +412,7 @@ export default function PlayersAdminPage() {
 
                 <button
                   onClick={() =>
-                    handleDelete(
-                      player.id
-                    )
+                    handleDelete(player)
                   }
                   className="rounded-xl bg-red-600 px-4 py-2 font-bold text-white transition hover:bg-red-700"
                 >

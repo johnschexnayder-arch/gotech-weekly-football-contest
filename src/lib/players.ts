@@ -158,3 +158,110 @@ export async function deletePlayer(
   }
 
 }
+
+
+
+
+
+export async function deletePlayerCascade(
+  playerId: string
+) {
+
+  // Find all entries for this player
+
+  const { data: entries, error: entriesError } =
+    await supabase
+      .from("entries")
+      .select("id")
+      .eq(
+        "player_id",
+        playerId
+      );
+
+
+  if (entriesError) {
+
+    throw new Error(
+      entriesError.message
+    );
+
+  }
+
+
+
+  const entryIds =
+    entries?.map(
+      (entry) => entry.id
+    ) ?? [];
+
+
+
+  // Delete picks first
+
+  if (entryIds.length > 0) {
+
+    const { error: picksError } =
+      await supabase
+        .from("picks")
+        .delete()
+        .in(
+          "entry_id",
+          entryIds
+        );
+
+
+    if (picksError) {
+
+      throw new Error(
+        picksError.message
+      );
+
+    }
+
+  }
+
+
+
+  // Delete entries
+
+  const { error: deleteEntriesError } =
+    await supabase
+      .from("entries")
+      .delete()
+      .eq(
+        "player_id",
+        playerId
+      );
+
+
+  if (deleteEntriesError) {
+
+    throw new Error(
+      deleteEntriesError.message
+    );
+
+  }
+
+
+
+  // Delete player
+
+  const { error: deletePlayerError } =
+    await supabase
+      .from("players")
+      .delete()
+      .eq(
+        "id",
+        playerId
+      );
+
+
+  if (deletePlayerError) {
+
+    throw new Error(
+      deletePlayerError.message
+    );
+
+  }
+
+}
