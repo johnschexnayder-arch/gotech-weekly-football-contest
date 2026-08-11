@@ -44,6 +44,17 @@ export type PerfectSlatePlayer = {
   score: number;
 };
 
+export type LastWeekTop10Player = {
+  rank: number;
+  name: string;
+  score: number;
+};
+
+export type LastWeekTop10Data = {
+  weekNumber?: number;
+  players: LastWeekTop10Player[];
+};
+
 export type DashboardData = {
   hero: HeroData;
   leaderboard: LeaderboardPlayer[];
@@ -52,6 +63,7 @@ export type DashboardData = {
   perfectSlatePlayers: PerfectSlatePlayer[];
   games: WeeklyGame[];
   stats: ContestStats;
+  lastWeekTop10: LastWeekTop10Data;
 };
 
 export async function getDashboard(): Promise<DashboardData> {
@@ -244,6 +256,94 @@ export async function getDashboard(): Promise<DashboardData> {
       score: player.score,
     }));
 
+  /*
+   * Last Week Top 10
+   *
+   * Find the most recently completed contest week.
+   * This is intentionally separate from the current/open week
+   * leaderboard above.
+   */
+  const { data: completedWeeks, error: completedWeeksError } =
+    await supabase
+      .from("weeks")
+      .select("id, week_number")
+      .eq("status", "COMPLETED")
+      .order("week_number", {
+        ascending: false,
+      })
+      .limit(1);
+
+  if (completedWeeksError) {
+    console.error(
+      "COMPLETED WEEKS ERROR:",
+      completedWeeksError
+    );
+    throw new Error(
+      JSON.stringify(completedWeeksError)
+    );
+  }
+
+  const completedWeek = completedWeeks?.[0];
+
+  let lastWeekTop10: LastWeekTop10Data = {
+    players: [],
+  };
+
+  if (completedWeek) {
+    const {
+      data: completedEntries,
+      error: completedEntriesError,
+    } = await supabase
+      .from("entries")
+      .select(`
+        score,
+        tiebreaker_rank,
+        players (
+          name
+        )
+      `)
+      .eq("week_id", completedWeek.id);
+
+    if (completedEntriesError) {
+      console.error(
+        "COMPLETED WEEK ENTRIES ERROR:",
+        completedEntriesError
+      );
+      throw new Error(
+        JSON.stringify(completedEntriesError)
+      );
+    }
+
+    const completedLeaderboard = (completedEntries ?? [])
+      .sort((a, b) => {
+        if ((b.score ?? 0) !== (a.score ?? 0)) {
+          return (b.score ?? 0) - (a.score ?? 0);
+        }
+
+        return (
+          (a.tiebreaker_rank ?? 999) -
+          (b.tiebreaker_rank ?? 999)
+        );
+      })
+      .slice(0, 10)
+      .map((entry, index) => {
+        const player = Array.isArray(entry.players)
+          ? entry.players[0]
+          : entry.players;
+
+        return {
+          rank: index + 1,
+          name: player?.name ?? "Unknown Player",
+          score: entry.score ?? 0,
+        };
+      });
+
+    lastWeekTop10 = {
+      weekNumber: completedWeek.week_number,
+      players: completedLeaderboard,
+    };
+  }
+
   return {
     hero: {
       weekNumber: week.week_number,
@@ -272,5 +372,7 @@ export async function getDashboard(): Promise<DashboardData> {
       weeklyPrize: 80,
       seasonPot: (playerCount ?? 0) * 20,
     },
+
+    lastWeekTop10,
   };
 }

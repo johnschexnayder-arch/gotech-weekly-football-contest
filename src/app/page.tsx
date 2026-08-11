@@ -11,7 +11,6 @@ export default async function HomePage() {
 
   return (
     <main className="space-y-8">
-
       <HeroBanner
         weekNumber={dashboard.hero.weekNumber}
         deadline={dashboard.hero.deadline}
@@ -19,29 +18,21 @@ export default async function HomePage() {
       />
 
       <section className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
-
         <div className="space-y-8">
-
-          <YourPicksCard
-            games={dashboard.games}
-          />
+          <YourPicksCard games={dashboard.games} />
 
           <YourResultsCard />
-
         </div>
 
         <aside className="space-y-8">
+          <LeaderboardCard players={dashboard.leaderboard} />
 
-          <LeaderboardCard
-            players={dashboard.leaderboard}
+          <LastWeekTop10Card
+            weekNumber={dashboard.lastWeekTop10.weekNumber}
+            players={dashboard.lastWeekTop10.players}
           />
-
-          <LastWeekTop10Card />
-
         </aside>
-
       </section>
-
     </main>
   );
 }
