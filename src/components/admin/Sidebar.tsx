@@ -10,7 +10,6 @@ const adminLinks = [
   { href: "/admin/games", label: "Games", icon: "🏈" },
   { href: "/admin/players", label: "Players", icon: "👥" },
   { href: "/admin/scoring", label: "Score Week", icon: "✅" },
-  { href: "/admin/standings", label: "Standings", icon: "🏆" },
 ];
 
 const publicLinks = [

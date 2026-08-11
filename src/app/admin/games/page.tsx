@@ -1,9 +1,13 @@
 import Link from "next/link";
+
 import { getWeeks } from "@/lib/weeks";
 import { getGames } from "@/lib/games";
+
 import CreateGameDialog from "@/components/games/CreateGameDialog";
 import EditGameDialog from "@/components/games/EditGameDialog";
 import DeleteGameButton from "@/components/games/DeleteGameButton";
+import TiebreakerGameSelector from "@/components/games/TiebreakerGameSelector";
+
 import { Week } from "@/types/database";
 
 export default async function GamesPage({
@@ -22,7 +26,9 @@ export default async function GamesPage({
     weeks[0] ??
     null;
 
-  const games = selectedWeek ? await getGames(selectedWeek.id) : [];
+  const games = selectedWeek
+    ? await getGames(selectedWeek.id)
+    : [];
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-6 py-12">
@@ -81,6 +87,25 @@ export default async function GamesPage({
         </form>
       </section>
 
+      {selectedWeek && (
+        <TiebreakerGameSelector
+          weekId={selectedWeek.id}
+          games={games}
+          existingGameId={
+            selectedWeek.tiebreaker_game_id
+          }
+          existingWinner={
+            selectedWeek.tiebreaker_winner
+          }
+          existingTotalPoints={
+            selectedWeek.tiebreaker_total_points
+          }
+          existingHomePoints={
+            selectedWeek.tiebreaker_home_points
+          }
+        />
+      )}
+
       <section className="overflow-hidden rounded-3xl border border-yellow-400/20 bg-white shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -89,21 +114,27 @@ export default async function GamesPage({
                 <th className="px-5 py-4 text-left text-sm font-black uppercase tracking-wide">
                   #
                 </th>
+
                 <th className="px-5 py-4 text-left text-sm font-black uppercase tracking-wide">
                   Sport
                 </th>
+
                 <th className="px-5 py-4 text-left text-sm font-black uppercase tracking-wide">
                   Away Team
                 </th>
+
                 <th className="px-5 py-4 text-left text-sm font-black uppercase tracking-wide">
                   Home Team
                 </th>
+
                 <th className="px-5 py-4 text-left text-sm font-black uppercase tracking-wide">
                   Kickoff
                 </th>
+
                 <th className="px-5 py-4 text-left text-sm font-black uppercase tracking-wide">
                   Winner
                 </th>
+
                 <th className="px-5 py-4 text-center text-sm font-black uppercase tracking-wide">
                   Actions
                 </th>
@@ -143,7 +174,9 @@ export default async function GamesPage({
                     </td>
 
                     <td className="px-5 py-4 text-sm text-slate-600">
-                      {new Date(game.kickoff).toLocaleString()}
+                      {new Date(
+                        game.kickoff
+                      ).toLocaleString()}
                     </td>
 
                     <td className="px-5 py-4">
@@ -152,14 +185,19 @@ export default async function GamesPage({
                           {game.winner}
                         </span>
                       ) : (
-                        <span className="text-slate-400">-</span>
+                        <span className="text-slate-400">
+                          -
+                        </span>
                       )}
                     </td>
 
                     <td className="px-5 py-4">
                       <div className="flex justify-center gap-2">
                         <EditGameDialog game={game} />
-                        <DeleteGameButton gameId={game.id} />
+
+                        <DeleteGameButton
+                          gameId={game.id}
+                        />
                       </div>
                     </td>
                   </tr>
