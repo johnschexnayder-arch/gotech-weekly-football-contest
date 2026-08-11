@@ -35,22 +35,22 @@ export default function AppHeader() {
     <header className="border-b border-slate-200 bg-white shadow-sm">
       <div className="h-1 bg-gradient-to-r from-green-900 via-yellow-500 to-green-900" />
 
-      <div className="flex items-center justify-between px-8 py-5">
-        <div>
+      <div className="flex items-center justify-between px-4 py-4 md:px-8 md:py-5">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-yellow-500" />
+            <Trophy className="h-6 w-6 shrink-0 text-yellow-500" />
 
-            <h1 className="text-2xl font-black tracking-tight text-green-950">
+            <h1 className="truncate text-lg font-black tracking-tight text-green-950 md:text-2xl">
               GOTECH Weekly Football Contest
             </h1>
           </div>
 
-          <p className="mt-1 text-sm text-slate-500">
-  15 Weeks | 12 Games Per Week | Picks Due Each Saturday Morning
-</p>
+          <p className="mt-1 hidden text-sm text-slate-500 md:block">
+            15 Weeks | 12 Games Per Week | Picks Due Each Saturday Morning
+          </p>
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="ml-4 flex shrink-0 items-center gap-3 md:gap-5">
           {player ? (
             <>
               <div className="hidden text-right md:block">
@@ -72,9 +72,14 @@ export default function AppHeader() {
                 </button>
               </div>
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-green-900 to-green-700 text-sm font-bold text-white shadow-lg ring-2 ring-yellow-400">
+              <button
+                type="button"
+                onClick={handleLogout}
+                aria-label="Log out"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-green-900 to-green-700 text-sm font-bold text-white shadow-lg ring-2 ring-yellow-400 transition hover:scale-105 md:h-12 md:w-12"
+              >
                 {initials}
-              </div>
+              </button>
             </>
           ) : (
             <>
@@ -86,9 +91,13 @@ export default function AppHeader() {
                 Login
               </Link>
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-green-900 to-green-700 text-white shadow-lg ring-2 ring-yellow-400">
+              <Link
+                href="/login"
+                aria-label="Login"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-green-900 to-green-700 text-white shadow-lg ring-2 ring-yellow-400 transition hover:scale-105 md:h-12 md:w-12"
+              >
                 <User className="h-5 w-5" />
-              </div>
+              </Link>
             </>
           )}
         </div>
