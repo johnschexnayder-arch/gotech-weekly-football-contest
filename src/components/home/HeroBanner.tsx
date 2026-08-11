@@ -27,19 +27,18 @@ export default function HeroBanner({
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-yellow-600/30 text-white shadow-2xl">
-      {/* Football field background */}
       <div className="absolute inset-0">
         <Image
           src="/images/gotech-football-field.png"
           alt=""
           fill
           priority
-          className="object-cover"
+          sizes="100vw"
+          className="object-fill"
         />
       </div>
 
-      {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-green-950/80 via-green-950/35 to-green-950/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-green-950/75 via-green-950/30 to-green-950/15" />
 
       <div className="relative flex min-h-[280px] flex-col justify-between gap-8 px-8 py-8 lg:flex-row lg:items-center">
         <div>
