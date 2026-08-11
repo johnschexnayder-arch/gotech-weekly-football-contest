@@ -23,10 +23,10 @@ export default function Sidebar() {
     <aside className="hidden min-h-screen w-72 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
       <div className="border-b border-slate-200 px-6 py-6">
         <Image
-          src="/images/gotech-logo.png"
-          alt="GOTECH Logo"
+          src="/images/gotech-football.png"
+          alt="GOTECH Football"
           width={180}
-          height={90}
+          height={120}
           className="h-auto w-full object-contain"
           priority
         />

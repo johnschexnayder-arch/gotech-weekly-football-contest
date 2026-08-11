@@ -26,20 +26,22 @@ export default function HeroBanner({
   );
 
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl border border-yellow-600/30">
-      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 opacity-20">
+    <section className="relative overflow-hidden rounded-3xl border border-yellow-600/30 text-white shadow-2xl">
+      {/* Football field background */}
+      <div className="absolute inset-0">
         <Image
-          src="/images/gotech-tree.png"
+          src="/images/gotech-football-field.png"
           alt=""
-          width={360}
-          height={360}
-          className="object-contain"
+          fill
+          priority
+          className="object-cover"
         />
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-r from-green-950/80 via-transparent to-yellow-500/10" />
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-green-950/80 via-green-950/35 to-green-950/20" />
 
-      <div className="relative flex flex-col justify-between gap-8 px-8 py-8 lg:flex-row lg:items-center">
+      <div className="relative flex min-h-[280px] flex-col justify-between gap-8 px-8 py-8 lg:flex-row lg:items-center">
         <div>
           <div className="text-xs font-black uppercase tracking-[0.45em] text-yellow-400">
             GOTECH Weekly Football Contest
@@ -54,7 +56,7 @@ export default function HeroBanner({
           </p>
 
           <div className="mt-6 flex flex-wrap gap-4">
-            <div className="rounded-xl border border-yellow-400/30 bg-black/20 px-5 py-3 backdrop-blur">
+            <div className="rounded-xl border border-yellow-400/30 bg-black/30 px-5 py-3 backdrop-blur">
               <div className="text-xs font-black uppercase tracking-wide text-yellow-300">
                 Games
               </div>
@@ -64,7 +66,7 @@ export default function HeroBanner({
               </div>
             </div>
 
-            <div className="rounded-xl border border-yellow-400/30 bg-black/20 px-5 py-3 backdrop-blur">
+            <div className="rounded-xl border border-yellow-400/30 bg-black/30 px-5 py-3 backdrop-blur">
               <div className="text-xs font-black uppercase tracking-wide text-yellow-300">
                 Picks Close
               </div>
