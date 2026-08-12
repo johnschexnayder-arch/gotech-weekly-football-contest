@@ -39,7 +39,7 @@ body {
   background:
     radial-gradient(
       circle at top left,
-      rgba(201, 162, 39, 0.10),
+      rgba(201, 162, 39, 0.1),
       transparent 30%
     ),
     radial-gradient(
@@ -111,7 +111,7 @@ body {
 }
 
 /* =========================================================
-   GOTECH SIDEBAR BACKGROUND IMAGE
+   DESKTOP GOTECH SIDEBAR BACKGROUND IMAGE
    ========================================================= */
 
 .gotech-sidebar {
@@ -158,6 +158,55 @@ body {
       rgba(255, 255, 255, 0.12) 45%,
       rgba(255, 255, 255, 0.28) 100%
     );
+}
+
+/* =========================================================
+   MOBILE MENU BACKGROUND IMAGE
+   ========================================================= */
+
+.gotech-mobile-menu {
+  position: relative;
+  overflow: hidden;
+
+  background-color: #f8faf7;
+
+  background-image:
+    linear-gradient(
+      rgba(248, 250, 247, 0.82),
+      rgba(248, 250, 247, 0.82)
+    ),
+    url("/images/gotech-sidebar-background.png");
+
+  background-repeat: no-repeat;
+
+  background-position:
+    center,
+    38% 20%;
+
+  background-size:
+    cover,
+    150%;
+}
+
+.gotech-mobile-menu::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+  z-index: 1;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.24)
+    );
+}
+
+.gotech-mobile-menu-content {
+  position: relative;
+  z-index: 2;
 }
 
 /* =========================================================
@@ -321,7 +370,7 @@ a {
 .green-panel {
   background: var(--gotech-light-green);
 
-  border: 1px solid rgba(6, 78, 59, 0.10);
+  border: 1px solid rgba(6, 78, 59, 0.1);
 
   border-radius: 1rem;
 }
