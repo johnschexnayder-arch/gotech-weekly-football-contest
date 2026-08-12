@@ -1,409 +1,59 @@
-"use client";
+import HeroBanner from "@/components/home/HeroBanner";
+import YourPicksCard from "@/components/home/YourPicksCard";
+import YourResultsCard from "@/components/home/YourResultsCard";
+import LeaderboardCard from "@/components/home/LeaderboardCard";
+import LastWeekTop10Card from "@/components/home/LastWeekTop10Card";
 
-import { useEffect, useState } from "react";
+import { getDashboard } from "@/lib/dashboard";
 
-import DeadlineBanner from "@/components/picks/DeadlineBanner";
-import GameCard from "@/components/picks/GameCard";
-import ProgressCard from "@/components/picks/ProgressCard";
-import SubmitBar from "@/components/picks/SubmitBar";
-import TiebreakerCard from "@/components/picks/TiebreakerCard";
-import PicksSubmittedModal from "@/components/picks/PicksSubmittedModal";
+export const dynamic = "force-dynamic";
 
-import {
-  CurrentWeek,
-  getCurrentWeek,
-} from "@/lib/games";
-
-import {
-  savePicks,
-  getSavedPicks,
-} from "@/lib/picks";
-
-import {
-  getLoggedInPlayer,
-} from "@/lib/auth";
-
-export default function PicksPage() {
-  const [week, setWeek] =
-    useState<CurrentWeek | null>(null);
-
-  const [selectedPicks, setSelectedPicks] =
-    useState<Record<string, string>>({});
-
-  const [isLocked, setIsLocked] =
-    useState(false);
-
-  const [showSuccessModal, setShowSuccessModal] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [tiebreaker, setTiebreaker] =
-    useState({
-      winner: "",
-      totalPoints: "",
-      homePoints: "",
-    });
-
-  useEffect(() => {
-    async function loadWeek() {
-      try {
-        const data =
-          await getCurrentWeek();
-
-        setWeek(data);
-
-        if (!data) {
-          return;
-        }
-
-        const lockedByDeadline =
-          new Date() >=
-          new Date(data.deadline);
-
-        const lockedByStatus =
-          data.status === "LOCKED" ||
-          data.status === "COMPLETED";
-
-        setIsLocked(
-          lockedByDeadline ||
-          lockedByStatus
-        );
-
-        const player =
-          getLoggedInPlayer();
-
-        if (player) {
-          const saved =
-            await getSavedPicks(
-              player.id,
-              data.id
-            );
-
-          setSelectedPicks(
-            saved.picks
-          );
-
-          setTiebreaker({
-            winner:
-              saved.tiebreaker.winner ?? "",
-
-            totalPoints:
-              saved.tiebreaker.totalPoints !== null
-                ? String(
-                    saved.tiebreaker.totalPoints
-                  )
-                : "",
-
-            homePoints:
-              saved.tiebreaker.homePoints !== null
-                ? String(
-                    saved.tiebreaker.homePoints
-                  )
-                : "",
-          });
-        }
-      } catch (error) {
-        console.error(
-          "LOAD PICKS ERROR:",
-          error
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadWeek();
-  }, []);
-
-  function handlePick(
-    gameId: string,
-    team: string
-  ) {
-    if (isLocked) {
-      return;
-    }
-
-    setSelectedPicks(
-      (previous) => {
-        const updated = {
-          ...previous,
-        };
-
-        if (
-          updated[gameId] === team
-        ) {
-          delete updated[gameId];
-        } else {
-          updated[gameId] = team;
-        }
-
-        return updated;
-      }
-    );
-  }
-
-  async function handleSubmit() {
-    if (isLocked) {
-      alert(
-        "Picks are locked."
-      );
-
-      return;
-    }
-
-    const player =
-      getLoggedInPlayer();
-
-    if (!player) {
-      alert(
-        "Please login first."
-      );
-
-      return;
-    }
-
-    if (!week) {
-      alert(
-        "No active week found."
-      );
-
-      return;
-    }
-
-    if (
-      Object.keys(selectedPicks).length !==
-      week.games.length
-    ) {
-      alert(
-        "Please select a winner for every game."
-      );
-
-      return;
-    }
-
-    try {
-      await savePicks(
-        player.id,
-        week.id,
-        selectedPicks,
-        {
-          winner:
-            tiebreaker.winner,
-
-          totalPoints:
-            Number(
-              tiebreaker.totalPoints
-            ),
-
-          homePoints:
-            Number(
-              tiebreaker.homePoints
-            ),
-        }
-      );
-
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error(
-        error
-      );
-
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Error saving picks."
-      );
-    }
-  }
-
-  if (loading) {
-    return (
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <section className="rounded-3xl border border-yellow-500/20 bg-white p-10 text-center shadow-xl">
-          <div className="text-sm font-black uppercase tracking-[0.3em] text-green-900">
-            GOTECH Weekly Football Contest
-          </div>
-
-          <p className="mt-3 text-lg font-semibold text-slate-500">
-            Loading...
-          </p>
-        </section>
-      </main>
-    );
-  }
-
-  if (!week) {
-    return (
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl">
-          <div className="p-8 sm:p-10">
-            <div className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">
-              GOTECH Weekly Football Contest
-            </div>
-
-            <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-              Contest Coming Soon
-            </h1>
-
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-green-100">
-              Register today!!!! Week 1 games will be released on August 31.
-            </p>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
-  const tiebreakerGame =
-    week.games.find(
-      (game) =>
-        game.id ===
-        week.tiebreakerGameId
-    );
+export default async function HomePage() {
+  const dashboard =
+    await getDashboard();
 
   return (
-    <main className="mx-auto max-w-7xl space-y-6 p-6">
-      <h1 className="text-4xl font-bold text-green-900">
-        Week {week.weekNumber} Picks
-      </h1>
-
-      <DeadlineBanner
+    <main className="space-y-8">
+      <HeroBanner
+        weekNumber={
+          dashboard.hero.weekNumber
+        }
         deadline={
-          week.deadline
+          dashboard.hero.deadline
         }
-        isLocked={
-          isLocked
-        }
-      />
-
-      <ProgressCard
-        selected={
-          Object.keys(selectedPicks).length
-        }
-        total={
-          week.games.length
+        gameCount={
+          dashboard.hero.gameCount
         }
       />
 
-      <section className="overflow-hidden rounded-3xl bg-white shadow-lg">
-        <div className="bg-green-900 px-6 py-5 text-white">
-          <h2 className="text-xl font-semibold">
-            Weekly Matchups
-          </h2>
+      <section className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-8">
+          <YourPicksCard
+            games={
+              dashboard.games
+            }
+          />
+
+          <YourResultsCard />
         </div>
 
-        {week.games.map(
-          (game, index) => (
-            <GameCard
-              key={
-                game.id
-              }
-              gameNumber={
-                index + 1
-              }
-              awayTeam={
-                game.awayTeam
-              }
-              homeTeam={
-                game.homeTeam
-              }
-              selectedTeam={
-                selectedPicks[game.id]
-              }
-              onSelect={
-                (team) =>
-                  handlePick(
-                    game.id,
-                    team
-                  )
-              }
-              disabled={
-                isLocked
-              }
-            />
-          )
-        )}
+        <aside className="space-y-8">
+          <LeaderboardCard
+            players={
+              dashboard.leaderboard
+            }
+          />
+
+          <LastWeekTop10Card
+            weekNumber={
+              dashboard.lastWeekTop10.weekNumber
+            }
+            players={
+              dashboard.lastWeekTop10.players
+            }
+          />
+        </aside>
       </section>
-
-      <TiebreakerCard
-        awayTeam={
-          tiebreakerGame?.awayTeam ?? ""
-        }
-        homeTeam={
-          tiebreakerGame?.homeTeam ?? ""
-        }
-        winner={
-          tiebreaker.winner
-        }
-        awayScore={
-          tiebreaker.totalPoints
-        }
-        homeScore={
-          tiebreaker.homePoints
-        }
-        onWinnerChange={
-          (value) =>
-            setTiebreaker(
-              (prev) => ({
-                ...prev,
-                winner: value,
-              })
-            )
-        }
-        onAwayScoreChange={
-          (value) =>
-            setTiebreaker(
-              (prev) => ({
-                ...prev,
-                totalPoints: value,
-              })
-            )
-        }
-        onHomeScoreChange={
-          (value) =>
-            setTiebreaker(
-              (prev) => ({
-                ...prev,
-                homePoints: value,
-              })
-            )
-        }
-        disabled={
-          isLocked
-        }
-      />
-
-      <SubmitBar
-        selected={
-          Object.keys(selectedPicks).length
-        }
-        total={
-          week.games.length
-        }
-        disabled={
-          isLocked
-        }
-        onSubmit={
-          handleSubmit
-        }
-      />
-
-      <PicksSubmittedModal
-        open={
-          showSuccessModal
-        }
-        weekNumber={
-          week.weekNumber
-        }
-        totalGames={
-          week.games.length
-        }
-        onClose={() =>
-          setShowSuccessModal(false)
-        }
-      />
     </main>
   );
 }
