@@ -30,7 +30,7 @@ export default function HeroBanner({
     <section className="relative overflow-hidden rounded-3xl border border-yellow-600/30 text-white shadow-2xl">
       <div className="absolute inset-0">
         <Image
-          src="/images/gotech-football-field.png"
+          src="/images/gotech-football-field.png?v=2"
           alt=""
           fill
           priority
@@ -66,7 +66,9 @@ export default function HeroBanner({
                   Games
                 </div>
 
-                <div className="mt-1 text-3xl font-black">{gameCount}</div>
+                <div className="mt-1 text-3xl font-black">
+                  {gameCount}
+                </div>
               </div>
 
               <div className="rounded-xl border border-yellow-400/30 bg-black/30 px-5 py-3 backdrop-blur">
