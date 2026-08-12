@@ -111,19 +111,27 @@ body {
 }
 
 /* =========================================================
-   DESKTOP GOTECH SIDEBAR BACKGROUND IMAGE
+   DESKTOP GOTECH SIDEBAR
    ========================================================= */
 
 .gotech-sidebar {
   position: relative;
   overflow: hidden;
 
+  background: transparent;
+}
+
+.gotech-sidebar-content {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+
   background-color: #f8faf7;
 
   background-image:
     linear-gradient(
-      rgba(248, 250, 247, 0.76),
-      rgba(248, 250, 247, 0.76)
+      rgba(248, 250, 247, 0.45),
+      rgba(248, 250, 247, 0.45)
     ),
     url("/images/gotech-sidebar-background.png");
 
@@ -138,17 +146,12 @@ body {
     105%;
 }
 
-.gotech-sidebar-content {
-  position: relative;
-  z-index: 2;
-}
-
-.gotech-sidebar::after {
+.gotech-sidebar-content::after {
   content: "";
   position: absolute;
   inset: 0;
 
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
 
   background:
@@ -158,6 +161,11 @@ body {
       rgba(255, 255, 255, 0.12) 45%,
       rgba(255, 255, 255, 0.28) 100%
     );
+}
+
+.gotech-sidebar-content > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* =========================================================

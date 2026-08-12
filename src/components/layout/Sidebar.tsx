@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -21,31 +20,12 @@ export default function Sidebar() {
 
   return (
     <aside className="gotech-sidebar hidden min-h-screen w-72 shrink-0 lg:flex lg:flex-col">
-      {/* Background artwork */}
-      <div className="gotech-sidebar-background">
-        <Image
-          src="/images/gotech-sidebar-background.png"
-          alt=""
-          fill
-          priority
-          sizes="288px"
-          className="object-cover object-center"
-        />
-      </div>
-
-      {/* Fade the artwork so navigation remains readable */}
-      <div className="gotech-sidebar-overlay" />
-
-      {/* Sidebar content */}
-      <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="border-b border-slate-200 bg-white/75 px-6 py-6 backdrop-blur-[1px]">
-          <Image
+      <div className="gotech-sidebar-content flex min-h-screen flex-col">
+        <div className="border-b border-slate-200/70 bg-white/20 px-6 py-6 backdrop-blur-[1px]">
+          <img
             src="/images/gotech-football.png"
             alt="GOTECH Football"
-            width={180}
-            height={120}
             className="h-auto w-full object-contain"
-            priority
           />
         </div>
 
@@ -136,7 +116,7 @@ export default function Sidebar() {
           )}
         </nav>
 
-        <div className="border-t border-slate-200 bg-white/60 p-5 backdrop-blur-[1px]">
+        <div className="border-t border-slate-200/70 bg-white/20 p-5 backdrop-blur-[1px]">
           <div className="rounded-2xl border border-green-100 bg-gradient-to-br from-green-50/90 to-yellow-50/90 p-4">
             <div className="text-xs font-bold uppercase tracking-wide text-green-900">
               GOTECH
