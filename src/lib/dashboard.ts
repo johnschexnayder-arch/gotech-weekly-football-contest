@@ -67,14 +67,15 @@ export type DashboardData = {
 };
 
 export async function getDashboard(): Promise<DashboardData> {
-  const { data: openWeeks, error: openWeekError } = await supabase
-    .from("weeks")
-    .select("*")
-    .eq("status", "OPEN")
-    .order("week_number", {
-      ascending: false,
-    })
-    .limit(1);
+  const { data: openWeeks, error: openWeekError } =
+    await supabase
+      .from("weeks")
+      .select("*")
+      .eq("status", "OPEN")
+      .order("week_number", {
+        ascending: false,
+      })
+      .limit(1);
 
   if (openWeekError) {
     console.error("OPEN WEEK ERROR:", openWeekError);
@@ -84,13 +85,14 @@ export async function getDashboard(): Promise<DashboardData> {
   let week = openWeeks?.[0];
 
   if (!week) {
-    const { data: recentWeeks, error: recentWeekError } = await supabase
-      .from("weeks")
-      .select("*")
-      .order("week_number", {
-        ascending: false,
-      })
-      .limit(1);
+    const { data: recentWeeks, error: recentWeekError } =
+      await supabase
+        .from("weeks")
+        .select("*")
+        .order("week_number", {
+          ascending: false,
+        })
+        .limit(1);
 
     if (recentWeekError) {
       console.error("RECENT WEEK ERROR:", recentWeekError);
@@ -100,15 +102,58 @@ export async function getDashboard(): Promise<DashboardData> {
     week = recentWeeks?.[0];
   }
 
+  // No contest weeks exist yet.
+  // Return an empty dashboard instead of crashing.
   if (!week) {
-    throw new Error("No contest weeks found.");
+    const { count: playerCount, error: playersError } =
+      await supabase
+        .from("players")
+        .select("*", {
+          count: "exact",
+          head: true,
+        });
+
+    if (playersError) {
+      console.error("PLAYERS ERROR:", playersError);
+      throw new Error(JSON.stringify(playersError));
+    }
+
+    return {
+      hero: {
+        weekNumber: 0,
+        deadline: "",
+        gameCount: 0,
+      },
+
+      leaderboard: [],
+
+      seasonLeaderboard: [],
+
+      weeklyAwards: {},
+
+      perfectSlatePlayers: [],
+
+      games: [],
+
+      stats: {
+        players: playerCount ?? 0,
+        games: 0,
+        weeklyPrize: 80,
+        seasonPot: (playerCount ?? 0) * 20,
+      },
+
+      lastWeekTop10: {
+        players: [],
+      },
+    };
   }
 
-  const { data: dbGames, error: gamesError } = await supabase
-    .from("games")
-    .select("*")
-    .eq("week_id", week.id)
-    .order("game_number");
+  const { data: dbGames, error: gamesError } =
+    await supabase
+      .from("games")
+      .select("*")
+      .eq("week_id", week.id)
+      .order("game_number");
 
   if (gamesError) {
     console.error("GAMES ERROR:", gamesError);
@@ -117,28 +162,30 @@ export async function getDashboard(): Promise<DashboardData> {
 
   const totalGames = dbGames?.length ?? 0;
 
-  const { count: playerCount, error: playersError } = await supabase
-    .from("players")
-    .select("*", {
-      count: "exact",
-      head: true,
-    });
+  const { count: playerCount, error: playersError } =
+    await supabase
+      .from("players")
+      .select("*", {
+        count: "exact",
+        head: true,
+      });
 
   if (playersError) {
     console.error("PLAYERS ERROR:", playersError);
     throw new Error(JSON.stringify(playersError));
   }
 
-  const { data: weeklyEntries, error: weeklyError } = await supabase
-    .from("entries")
-    .select(`
-      score,
-      tiebreaker_rank,
-      players (
-        name
-      )
-    `)
-    .eq("week_id", week.id);
+  const { data: weeklyEntries, error: weeklyError } =
+    await supabase
+      .from("entries")
+      .select(`
+        score,
+        tiebreaker_rank,
+        players (
+          name
+        )
+      `)
+      .eq("week_id", week.id);
 
   if (weeklyError) {
     console.error("WEEKLY ENTRIES ERROR:", weeklyError);
@@ -195,15 +242,16 @@ export async function getDashboard(): Promise<DashboardData> {
       score: player.score,
     }));
 
-  const { data: seasonEntries, error: seasonError } = await supabase
-    .from("entries")
-    .select(`
-      score,
-      tiebreaker_rank,
-      players (
-        name
-      )
-    `);
+  const { data: seasonEntries, error: seasonError } =
+    await supabase
+      .from("entries")
+      .select(`
+        score,
+        tiebreaker_rank,
+        players (
+          name
+        )
+      `);
 
   if (seasonError) {
     console.error("SEASON ERROR:", seasonError);
@@ -256,13 +304,6 @@ export async function getDashboard(): Promise<DashboardData> {
       score: player.score,
     }));
 
-  /*
-   * Last Week Top 10
-   *
-   * Find the most recently completed contest week.
-   * This is intentionally separate from the current/open week
-   * leaderboard above.
-   */
   const { data: completedWeeks, error: completedWeeksError } =
     await supabase
       .from("weeks")
@@ -278,6 +319,7 @@ export async function getDashboard(): Promise<DashboardData> {
       "COMPLETED WEEKS ERROR:",
       completedWeeksError
     );
+
     throw new Error(
       JSON.stringify(completedWeeksError)
     );
@@ -309,6 +351,7 @@ export async function getDashboard(): Promise<DashboardData> {
         "COMPLETED WEEK ENTRIES ERROR:",
         completedEntriesError
       );
+
       throw new Error(
         JSON.stringify(completedEntriesError)
       );

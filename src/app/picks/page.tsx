@@ -216,6 +216,13 @@ export default function PicksPage() {
     );
   }
 
+  const tiebreakerGame =
+    week.games.find(
+      (game) =>
+        game.id ===
+        week.tiebreakerGameId
+    );
+
   return (
     <main className="mx-auto max-w-7xl space-y-6 p-6">
       <h1 className="text-4xl font-bold text-green-900">
@@ -282,10 +289,10 @@ export default function PicksPage() {
 
       <TiebreakerCard
         awayTeam={
-          week.games[0]?.awayTeam ?? ""
+          tiebreakerGame?.awayTeam ?? ""
         }
         homeTeam={
-          week.games[0]?.homeTeam ?? ""
+          tiebreakerGame?.homeTeam ?? ""
         }
         winner={
           tiebreaker.winner

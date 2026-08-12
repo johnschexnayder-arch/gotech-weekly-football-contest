@@ -4,6 +4,8 @@ import { supabase } from "@/lib/supabase";
 import YourResults from "@/components/results/YourResults";
 import { CurrentWeek } from "@/lib/games";
 
+export const dynamic = "force-dynamic";
+
 type WeeklyResult = {
   playerId: string;
   playerName: string;
@@ -36,61 +38,38 @@ export default async function ResultsPage() {
   if (!completedWeek) {
     return (
       <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
-
         <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl">
-
           <div className="p-8">
-
             <div className="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-4 py-1 text-xs font-bold uppercase tracking-[0.25em] text-yellow-300">
-
               <Trophy className="h-4 w-4" />
-
               GOTECH Weekly Football Contest
-
             </div>
 
             <h1 className="mt-5 text-5xl font-black tracking-tight">
-
               Results
-
             </h1>
 
             <p className="mt-3 text-green-100">
-
               Weekly scores, rankings, and performance.
-
             </p>
-
           </div>
-
         </section>
 
         <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
-
           <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-6 py-5">
-
             <BarChart3 className="h-5 w-5 text-yellow-500" />
 
             <h2 className="text-xl font-bold text-green-900">
-
               Results
-
             </h2>
-
           </div>
 
           <div className="p-10 text-center">
-
             <p className="text-lg font-semibold text-slate-600">
-
               No completed weeks yet.
-
             </p>
-
           </div>
-
         </section>
-
       </main>
     );
   }
@@ -165,7 +144,6 @@ export default async function ResultsPage() {
   }[] = [];
 
   if (entryIds.length > 0) {
-
     const {
       data: pickData,
       error: picksError,
@@ -193,7 +171,6 @@ export default async function ResultsPage() {
   const results: WeeklyResult[] =
     (players ?? []).map(
       (player) => {
-
         const entry =
           (entries ?? []).find(
             (item) =>
@@ -237,7 +214,6 @@ export default async function ResultsPage() {
   // Rank highest score first.
   results.sort(
     (a, b) => {
-
       if (
         b.score !==
         a.score
@@ -278,6 +254,9 @@ export default async function ResultsPage() {
     status:
       "COMPLETED",
 
+    tiebreakerGameId:
+      null,
+
     games:
       (games ?? []).map(
         (game) => ({
@@ -298,183 +277,118 @@ export default async function ResultsPage() {
   };
 
   return (
-
     <main className="mx-auto max-w-7xl space-y-8 px-6 py-10">
-
       {/* Page Header */}
 
       <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl">
-
         <div className="p-8">
-
           <div className="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-4 py-1 text-xs font-bold uppercase tracking-[0.25em] text-yellow-300">
-
             <Trophy className="h-4 w-4" />
-
             GOTECH Weekly Football Contest
-
           </div>
 
           <h1 className="mt-5 text-5xl font-black tracking-tight">
-
             Results
-
           </h1>
 
           <p className="mt-3 text-green-100">
-
             Week{" "}
             {completedWeek.week_number}
             {" "}
             results and player performance.
-
           </p>
-
         </div>
-
       </section>
 
       {/* Weekly Leaderboard */}
 
       <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-white shadow-xl">
-
         <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-5">
-
           <div className="flex items-center gap-2">
-
             <BarChart3 className="h-5 w-5 text-yellow-500" />
 
             <h2 className="text-xl font-bold text-green-900">
-
               Week{" "}
               {completedWeek.week_number}
               {" "}
               Results
-
             </h2>
-
           </div>
 
           <div className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-900">
-
             {results.length} Players
-
           </div>
-
         </div>
 
         <div className="overflow-x-auto">
-
           <table className="w-full">
-
             <thead className="bg-green-950 text-white">
-
               <tr>
-
                 <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">
-
                   Rank
-
                 </th>
 
                 <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">
-
                   Player
-
                 </th>
 
                 <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">
-
                   Correct
-
                 </th>
 
                 <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">
-
                   Score
-
                 </th>
-
               </tr>
-
             </thead>
 
             <tbody>
-
               {results.map(
                 (result, index) => (
-
                   <tr
                     key={
                       result.playerId
                     }
                     className="border-t border-slate-100 transition-colors hover:bg-slate-50"
                   >
-
                     <td className="px-6 py-5">
-
                       <span className="font-black text-green-950">
-
                         {index + 1}
-
                       </span>
-
                     </td>
 
                     <td className="px-6 py-5">
-
                       <div className="font-bold text-slate-900">
-
                         {result.playerName}
-
                       </div>
 
                       {!result.hasEntry && (
-
                         <div className="text-xs font-semibold text-slate-400">
-
                           No entry submitted
-
                         </div>
-
                       )}
-
                     </td>
 
                     <td className="px-6 py-5">
-
                       <span className="font-semibold text-slate-700">
-
                         {result.correct}/
                         {games?.length ?? 0}
-
                       </span>
-
                     </td>
 
                     <td className="px-6 py-5">
-
                       <span className="inline-flex rounded-full bg-green-50 px-4 py-2 font-bold text-green-900">
-
                         {result.score}
                         {" "}
                         pts
-
                       </span>
-
                     </td>
-
                   </tr>
-
                 )
               )}
-
             </tbody>
-
           </table>
-
         </div>
-
       </section>
 
       {/* Logged-in Player Results */}
@@ -482,7 +396,6 @@ export default async function ResultsPage() {
       <YourResults
         week={week}
       />
-
     </main>
   );
 }

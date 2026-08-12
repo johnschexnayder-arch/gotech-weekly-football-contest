@@ -17,14 +17,17 @@ const publicLinks = [
 ];
 
 export default function Sidebar() {
-  const [player, setPlayer] = useState<any>(null);
+  const [player, setPlayer] =
+    useState<any>(null);
 
   useEffect(() => {
-    setPlayer(getLoggedInPlayer());
+    setPlayer(
+      getLoggedInPlayer()
+    );
   }, []);
 
   return (
-    <aside className="flex min-h-screen w-72 flex-col bg-slate-900 text-white">
+    <aside className="hidden min-h-screen w-72 shrink-0 flex-col bg-slate-900 text-white lg:flex">
       <div className="border-b border-slate-800 p-8">
         <h1 className="text-2xl font-black">
           GOTECH
@@ -36,7 +39,6 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 p-4">
-
         {player?.is_admin && (
           <>
             <div className="mb-4 px-4 text-xs font-black uppercase tracking-[0.25em] text-green-400">
@@ -61,7 +63,7 @@ export default function Sidebar() {
           </>
         )}
 
-        <div className="mt-8 mb-4 px-4 text-xs font-black uppercase tracking-[0.25em] text-slate-400">
+        <div className="mb-4 mt-8 px-4 text-xs font-black uppercase tracking-[0.25em] text-slate-400">
           Navigation
         </div>
 
@@ -80,7 +82,6 @@ export default function Sidebar() {
             </span>
           </Link>
         ))}
-
       </nav>
     </aside>
   );

@@ -8,8 +8,6 @@ import EditGameDialog from "@/components/games/EditGameDialog";
 import DeleteGameButton from "@/components/games/DeleteGameButton";
 import TiebreakerGameSelector from "@/components/games/TiebreakerGameSelector";
 
-import { Week } from "@/types/database";
-
 export default async function GamesPage({
   searchParams,
 }: {
@@ -31,32 +29,36 @@ export default async function GamesPage({
     : [];
 
   return (
-    <main className="mx-auto max-w-7xl space-y-8 px-6 py-12">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-green-950 via-green-900 to-green-800 p-8 text-white shadow-xl">
-        <div className="text-xs font-black uppercase tracking-[0.35em] text-yellow-400">
+    <main className="mx-auto w-full max-w-7xl min-w-0 space-y-8 px-4 py-8 sm:px-6 sm:py-12">
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-green-950 via-green-900 to-green-800 p-5 text-white shadow-xl sm:p-8">
+        <div className="text-xs font-black uppercase tracking-[0.25em] text-yellow-400 sm:tracking-[0.35em]">
           Commissioner Tools
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-5">
-          <div>
-            <h1 className="text-4xl font-black">
+        <div className="mt-3 flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-black sm:text-4xl">
               Games Management
             </h1>
 
-            <p className="mt-2 text-green-100">
+            <p className="mt-2 text-sm leading-6 text-green-100 sm:text-base">
               Create and manage the weekly football slate.
             </p>
           </div>
 
           {selectedWeek && (
-            <CreateGameDialog weekId={selectedWeek.id} />
+            <div className="shrink-0">
+              <CreateGameDialog
+                weekId={selectedWeek.id}
+              />
+            </div>
           )}
         </div>
       </section>
 
-      <section className="rounded-3xl border border-yellow-400/20 bg-white p-6 shadow-xl">
+      <section className="min-w-0 rounded-3xl border border-yellow-400/20 bg-white p-4 shadow-xl sm:p-6">
         <form method="GET">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <label
               htmlFor="week"
               className="font-black uppercase tracking-wide text-green-950"
@@ -64,51 +66,58 @@ export default async function GamesPage({
               Week
             </label>
 
-            <select
-              id="week"
-              name="week"
-              defaultValue={selectedWeek?.id}
-              className="rounded-xl border-2 border-green-100 bg-green-50 px-4 py-2 font-semibold text-green-950 outline-none focus:border-yellow-400"
-            >
-              {weeks.map((week) => (
-                <option key={week.id} value={week.id}>
-                  Week {week.week_number}
-                </option>
-              ))}
-            </select>
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
+              <select
+                id="week"
+                name="week"
+                defaultValue={selectedWeek?.id}
+                className="min-w-0 rounded-xl border-2 border-green-100 bg-green-50 px-4 py-2 font-semibold text-green-950 outline-none focus:border-yellow-400 sm:w-auto"
+              >
+                {weeks.map((week) => (
+                  <option
+                    key={week.id}
+                    value={week.id}
+                  >
+                    Week {week.week_number}
+                  </option>
+                ))}
+              </select>
 
-            <button
-              type="submit"
-              className="rounded-xl bg-green-900 px-4 py-2 font-bold text-white hover:bg-green-800"
-            >
-              Load
-            </button>
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-green-900 px-4 py-2 font-bold text-white hover:bg-green-800 sm:w-auto"
+              >
+                Load
+              </button>
+            </div>
           </div>
         </form>
       </section>
 
       {selectedWeek && (
-        <TiebreakerGameSelector
-          weekId={selectedWeek.id}
-          games={games}
-          existingGameId={
-            selectedWeek.tiebreaker_game_id
-          }
-          existingWinner={
-            selectedWeek.tiebreaker_winner
-          }
-          existingTotalPoints={
-            selectedWeek.tiebreaker_total_points
-          }
-          existingHomePoints={
-            selectedWeek.tiebreaker_home_points
-          }
-        />
+        <div className="min-w-0 overflow-hidden">
+          <TiebreakerGameSelector
+            weekId={selectedWeek.id}
+            games={games}
+            existingGameId={
+              selectedWeek.tiebreaker_game_id
+            }
+            existingWinner={
+              selectedWeek.tiebreaker_winner
+            }
+            existingTotalPoints={
+              selectedWeek.tiebreaker_total_points
+            }
+            existingHomePoints={
+              selectedWeek.tiebreaker_home_points
+            }
+          />
+        </div>
       )}
 
-      <section className="overflow-hidden rounded-3xl border border-yellow-400/20 bg-white shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      <section className="min-w-0 overflow-hidden rounded-3xl border border-yellow-400/20 bg-white shadow-xl">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full min-w-[760px]">
             <thead className="bg-green-950 text-white">
               <tr>
                 <th className="px-5 py-4 text-left text-sm font-black uppercase tracking-wide">
@@ -193,7 +202,9 @@ export default async function GamesPage({
 
                     <td className="px-5 py-4">
                       <div className="flex justify-center gap-2">
-                        <EditGameDialog game={game} />
+                        <EditGameDialog
+                          game={game}
+                        />
 
                         <DeleteGameButton
                           gameId={game.id}

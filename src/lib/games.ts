@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 
-
 export type Game = {
   id: string;
   awayTeam: string;
@@ -8,28 +7,21 @@ export type Game = {
   winner: string | null;
 };
 
-
-
 export type CurrentWeek = {
   id: string;
   weekNumber: number;
   deadline: string;
   status: "OPEN" | "LOCKED" | "COMPLETED";
+  tiebreakerGameId: string | null;
   games: Game[];
 };
 
-
-
-
-
 export async function getCurrentWeek(): Promise<CurrentWeek | null> {
-
-
   const { data: openWeek, error: openError } =
     await supabase
       .from("weeks")
       .select(
-        "id, week_number, deadline, status"
+        "id, week_number, deadline, status, tiebreaker_game_id"
       )
       .eq("status", "OPEN")
       .order("week_number", {
@@ -38,101 +30,58 @@ export async function getCurrentWeek(): Promise<CurrentWeek | null> {
       .limit(1)
       .maybeSingle();
 
-
-
   if (openError) {
-
     throw new Error(
       openError.message
     );
-
   }
-
-
-
-
 
   let week = openWeek;
 
-
-
-
-
   if (!week) {
-
-
-    const { data: recentWeek, error: recentError } =
-      await supabase
-        .from("weeks")
-        .select(
-          "id, week_number, deadline, status"
-        )
-        .order("week_number", {
-          ascending: false,
-        })
-        .limit(1)
-        .maybeSingle();
-
-
+    const {
+      data: recentWeek,
+      error: recentError,
+    } = await supabase
+      .from("weeks")
+      .select(
+        "id, week_number, deadline, status, tiebreaker_game_id"
+      )
+      .order("week_number", {
+        ascending: false,
+      })
+      .limit(1)
+      .maybeSingle();
 
     if (recentError) {
-
       throw new Error(
         recentError.message
       );
-
     }
 
-
-
     week = recentWeek;
-
-
   }
-
-
-
-
 
   if (!week) {
-
     return null;
-
   }
 
-
-
-
-
-
-
-  const { data: games, error: gamesError } =
-    await supabase
-      .from("games")
-      .select("*")
-      .eq("week_id", week.id)
-      .order("game_number");
-
-
-
-
+  const {
+    data: games,
+    error: gamesError,
+  } = await supabase
+    .from("games")
+    .select("*")
+    .eq("week_id", week.id)
+    .order("game_number");
 
   if (gamesError) {
-
     throw new Error(
       gamesError.message
     );
-
   }
 
-
-
-
-
-
-
   return {
-
     id: week.id,
 
     weekNumber:
@@ -144,9 +93,11 @@ export async function getCurrentWeek(): Promise<CurrentWeek | null> {
     status:
       week.status,
 
+    tiebreakerGameId:
+      week.tiebreaker_game_id ?? null,
+
     games:
       games?.map((game) => ({
-
         id:
           game.id,
 
@@ -158,53 +109,30 @@ export async function getCurrentWeek(): Promise<CurrentWeek | null> {
 
         winner:
           game.winner ?? null,
-
       })) ?? [],
-
   };
-
-
 }
-
-
-
-
-
-
 
 export async function getGames(
   weekId: string
 ) {
-
-
-  const { data, error } =
-    await supabase
-      .from("games")
-      .select("*")
-      .eq("week_id", weekId)
-      .order("game_number");
-
-
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("games")
+    .select("*")
+    .eq("week_id", weekId)
+    .order("game_number");
 
   if (error) {
-
     throw new Error(
       error.message
     );
-
   }
 
-
-
   return data ?? [];
-
 }
-
-
-
-
-
-
 
 export async function createGame(
   game: {
@@ -216,36 +144,23 @@ export async function createGame(
     kickoff: string;
   }
 ) {
-
-
-  const { data, error } =
-    await supabase
-      .from("games")
-      .insert(game)
-      .select()
-      .single();
-
-
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("games")
+    .insert(game)
+    .select()
+    .single();
 
   if (error) {
-
     throw new Error(
       error.message
     );
-
   }
 
-
-
   return data;
-
 }
-
-
-
-
-
-
 
 export async function updateGame(
   id: string,
@@ -257,57 +172,38 @@ export async function updateGame(
     winner?: string | null;
   }
 ) {
-
-
-  const { data, error } =
-    await supabase
-      .from("games")
-      .update(game)
-      .eq("id", id)
-      .select()
-      .single();
-
-
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("games")
+    .update(game)
+    .eq("id", id)
+    .select()
+    .single();
 
   if (error) {
-
     throw new Error(
       error.message
     );
-
   }
 
-
-
   return data;
-
 }
-
-
-
-
-
-
 
 export async function deleteGame(
   id: string
 ) {
-
-
-  const { error } =
-    await supabase
-      .from("games")
-      .delete()
-      .eq("id", id);
-
-
+  const {
+    error,
+  } = await supabase
+    .from("games")
+    .delete()
+    .eq("id", id);
 
   if (error) {
-
     throw new Error(
       error.message
     );
-
   }
-
 }
