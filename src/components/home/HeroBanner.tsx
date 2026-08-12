@@ -59,7 +59,7 @@ export default function HeroBanner({
           <p className="mt-3 max-w-xl text-base font-medium text-green-100">
             {hasWeek
               ? "Put your football knowledge to the test."
-              : "The next GOTECH Weekly Football Contest week has not been created yet."}
+              : "Register today!!!! Week 1 games will be released on August 31."}
           </p>
 
           {hasWeek && (

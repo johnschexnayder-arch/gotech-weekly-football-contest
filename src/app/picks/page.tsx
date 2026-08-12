@@ -36,6 +36,9 @@ export default function PicksPage() {
   const [showSuccessModal, setShowSuccessModal] =
     useState(false);
 
+  const [loading, setLoading] =
+    useState(true);
+
   const [tiebreaker, setTiebreaker] =
     useState({
       winner: "",
@@ -51,56 +54,63 @@ export default function PicksPage() {
 
         setWeek(data);
 
-        if (data) {
-          const lockedByDeadline =
-            new Date() >=
-            new Date(data.deadline);
+        if (!data) {
+          return;
+        }
 
-          const lockedByStatus =
-            data.status === "LOCKED" ||
-            data.status === "COMPLETED";
+        const lockedByDeadline =
+          new Date() >=
+          new Date(data.deadline);
 
-          setIsLocked(
-            lockedByDeadline ||
-            lockedByStatus
-          );
+        const lockedByStatus =
+          data.status === "LOCKED" ||
+          data.status === "COMPLETED";
 
-          const player =
-            getLoggedInPlayer();
+        setIsLocked(
+          lockedByDeadline ||
+          lockedByStatus
+        );
 
-          if (player) {
-            const saved =
-              await getSavedPicks(
-                player.id,
-                data.id
-              );
+        const player =
+          getLoggedInPlayer();
 
-            setSelectedPicks(
-              saved.picks
+        if (player) {
+          const saved =
+            await getSavedPicks(
+              player.id,
+              data.id
             );
 
-            setTiebreaker({
-              winner:
-                saved.tiebreaker.winner ?? "",
+          setSelectedPicks(
+            saved.picks
+          );
 
-              totalPoints:
-                saved.tiebreaker.totalPoints !== null
-                  ? String(
-                      saved.tiebreaker.totalPoints
-                    )
-                  : "",
+          setTiebreaker({
+            winner:
+              saved.tiebreaker.winner ?? "",
 
-              homePoints:
-                saved.tiebreaker.homePoints !== null
-                  ? String(
-                      saved.tiebreaker.homePoints
-                    )
-                  : "",
-            });
-          }
+            totalPoints:
+              saved.tiebreaker.totalPoints !== null
+                ? String(
+                    saved.tiebreaker.totalPoints
+                  )
+                : "",
+
+            homePoints:
+              saved.tiebreaker.homePoints !== null
+                ? String(
+                    saved.tiebreaker.homePoints
+                  )
+                : "",
+          });
         }
       } catch (error) {
-        console.error(error);
+        console.error(
+          "LOAD PICKS ERROR:",
+          error
+        );
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -196,7 +206,9 @@ export default function PicksPage() {
 
       setShowSuccessModal(true);
     } catch (error) {
-      console.error(error);
+      console.error(
+        error
+      );
 
       alert(
         error instanceof Error
@@ -206,12 +218,40 @@ export default function PicksPage() {
     }
   }
 
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-5xl px-6 py-10">
+        <section className="rounded-3xl border border-yellow-500/20 bg-white p-10 text-center shadow-xl">
+          <div className="text-sm font-black uppercase tracking-[0.3em] text-green-900">
+            GOTECH Weekly Football Contest
+          </div>
+
+          <p className="mt-3 text-lg font-semibold text-slate-500">
+            Loading...
+          </p>
+        </section>
+      </main>
+    );
+  }
+
   if (!week) {
     return (
-      <main className="p-6">
-        <p>
-          Loading...
-        </p>
+      <main className="mx-auto max-w-5xl px-6 py-10">
+        <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl">
+          <div className="p-8 sm:p-10">
+            <div className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">
+              GOTECH Weekly Football Contest
+            </div>
+
+            <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
+              Contest Coming Soon
+            </h1>
+
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-green-100">
+              Register today!!!! Week 1 games will be released on August 31.
+            </p>
+          </div>
+        </section>
       </main>
     );
   }
