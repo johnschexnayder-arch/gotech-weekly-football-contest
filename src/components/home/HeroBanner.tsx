@@ -27,28 +27,28 @@ export default function HeroBanner({
     : "";
 
   return (
-    <section className="relative min-h-[280px] overflow-hidden rounded-3xl border border-yellow-600/30 text-white shadow-2xl">
+    <section className="relative overflow-hidden rounded-3xl border border-yellow-600/30 text-white shadow-2xl">
       <div className="absolute inset-0">
         <Image
-          src="/images/gotech-football-field.png?v=3"
+          src="/images/gotech-football-field.png"
           alt=""
           fill
           priority
-          sizes="(max-width: 768px) 100vw, 100vw"
-          className="object-cover object-center"
+          sizes="100vw"
+          className="object-fill"
         />
       </div>
 
       <div className="absolute inset-0 bg-gradient-to-r from-green-950/75 via-green-950/30 to-green-950/15" />
 
-      <div className="relative z-10 flex min-h-[280px] flex-col justify-between gap-8 px-6 py-8 md:px-8 lg:flex-row lg:items-center">
+      <div className="relative flex min-h-[280px] flex-col justify-between gap-8 px-8 py-8 lg:flex-row lg:items-center">
         <div className="flex h-full flex-col lg:-translate-y-10">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.45em] text-yellow-400">
               GOTECH Weekly Football Contest
             </div>
 
-            <h1 className="mt-[-4px] text-4xl font-black tracking-tight md:text-5xl">
+            <h1 className="mt-[-4px] text-5xl font-black tracking-tight">
               {hasWeek ? `Week ${weekNumber} Picks` : "Contest Coming Soon"}
             </h1>
           </div>
@@ -66,9 +66,7 @@ export default function HeroBanner({
                   Games
                 </div>
 
-                <div className="mt-1 text-3xl font-black">
-                  {gameCount}
-                </div>
+                <div className="mt-1 text-3xl font-black">{gameCount}</div>
               </div>
 
               <div className="rounded-xl border border-yellow-400/30 bg-black/30 px-5 py-3 backdrop-blur">
@@ -87,7 +85,7 @@ export default function HeroBanner({
         {hasWeek && (
           <Link
             href="/picks"
-            className="group inline-flex items-center justify-center rounded-2xl border-2 border-yellow-400 bg-gradient-to-r from-yellow-500 to-yellow-600 px-8 py-4 text-sm font-black uppercase tracking-wide text-green-950 shadow-xl transition-all duration-200 hover:-translate-y-1 hover:from-yellow-400 hover:to-yellow-500 md:px-10 md:py-5 md:text-base"
+            className="group inline-flex items-center justify-center rounded-2xl border-2 border-yellow-400 bg-gradient-to-r from-yellow-500 to-yellow-600 px-10 py-5 text-base font-black uppercase tracking-wide text-green-950 shadow-xl transition-all duration-200 hover:-translate-y-1 hover:from-yellow-400 hover:to-yellow-500"
           >
             <span>🏈 Make Your Picks</span>
           </Link>
