@@ -37,10 +37,26 @@ body {
   min-height: 100vh;
 
   background:
-    radial-gradient(circle at top left, rgba(201,162,39,.10), transparent 30%),
-    radial-gradient(circle at top right, rgba(6,78,59,.08), transparent 35%),
-    radial-gradient(circle at bottom right, rgba(6,78,59,.05), transparent 40%),
-    linear-gradient(to bottom, #fafaf8 0%, #f5f6f3 100%);
+    radial-gradient(
+      circle at top left,
+      rgba(201, 162, 39, 0.10),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(6, 78, 59, 0.08),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(6, 78, 59, 0.05),
+      transparent 40%
+    ),
+    linear-gradient(
+      to bottom,
+      #fafaf8 0%,
+      #f5f6f3 100%
+    );
 
   color: var(--foreground);
 
@@ -56,14 +72,106 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Smooth selection */
+/* =========================================================
+   SUBTLE FOOTBALL-FIELD BACKGROUND
+   ========================================================= */
+
+.football-page-shell {
+  position: relative;
+  min-height: 100vh;
+
+  background:
+    linear-gradient(
+      rgba(245, 249, 245, 0.96),
+      rgba(245, 249, 245, 0.96)
+    ),
+    #5f9961;
+}
+
+.football-page-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 179px,
+      rgba(255, 255, 255, 0.32) 179px,
+      rgba(255, 255, 255, 0.32) 182px
+    );
+}
+
+.football-page-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================================================
+   GOTECH SIDEBAR BACKGROUND IMAGE
+   ========================================================= */
+
+.gotech-sidebar {
+  position: relative;
+  overflow: hidden;
+
+  background-color: #f8faf7;
+
+  background-image:
+    linear-gradient(
+      rgba(248, 250, 247, 0.76),
+      rgba(248, 250, 247, 0.76)
+    ),
+    url("/images/gotech-sidebar-background.png");
+
+  background-repeat: no-repeat;
+
+  background-position:
+    center,
+    35% 12%;
+
+  background-size:
+    cover,
+    105%;
+}
+
+.gotech-sidebar-content {
+  position: relative;
+  z-index: 2;
+}
+
+.gotech-sidebar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  z-index: 1;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.12) 45%,
+      rgba(255, 255, 255, 0.28) 100%
+    );
+}
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
 
 ::selection {
-  background: rgba(201, 162, 39, .35);
+  background: rgba(201, 162, 39, 0.35);
   color: var(--gotech-dark-green);
 }
 
-/* Scrollbar */
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -91,62 +199,74 @@ body {
   );
 }
 
-/* Images */
+/* =========================================================
+   IMAGES
+   ========================================================= */
 
 img {
   user-select: none;
 }
 
-/* Links */
+/* =========================================================
+   LINKS
+   ========================================================= */
 
 a {
   transition:
-    color .2s ease,
-    opacity .2s ease;
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
-/* Focus */
+/* =========================================================
+   FOCUS
+   ========================================================= */
 
 :focus-visible {
-  outline: 3px solid rgba(201,162,39,.45);
+  outline: 3px solid rgba(201, 162, 39, 0.45);
   outline-offset: 3px;
 }
 
-/* Dashboard cards */
+/* =========================================================
+   DASHBOARD CARDS
+   ========================================================= */
 
 .dashboard-card {
   background: white;
 
-  border: 1px solid rgba(15,23,42,.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 
   border-radius: 1.5rem;
 
   box-shadow:
-    0 10px 25px rgba(2,44,34,.08);
+    0 10px 25px rgba(2, 44, 34, 0.08);
 
   transition:
-    transform .2s ease,
-    box-shadow .2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .dashboard-card:hover {
   transform: translateY(-3px);
 
   box-shadow:
-    0 20px 45px rgba(2,44,34,.12);
+    0 20px 45px rgba(2, 44, 34, 0.12);
 }
 
-/* Section titles */
+/* =========================================================
+   SECTION TITLES
+   ========================================================= */
 
 .section-title {
   color: var(--gotech-dark-green);
 
   font-weight: 800;
 
-  letter-spacing: -.03em;
+  letter-spacing: -0.03em;
 }
 
-/* Primary button */
+/* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
 
 .btn-primary {
   background:
@@ -162,14 +282,14 @@ a {
 
   border-radius: 1rem;
 
-  padding: .95rem 1.8rem;
+  padding: 0.95rem 1.8rem;
 
   font-weight: 700;
 
-  transition: all .2s ease;
+  transition: all 0.2s ease;
 
   box-shadow:
-    0 10px 25px rgba(2,44,34,.18);
+    0 10px 25px rgba(2, 44, 34, 0.18);
 }
 
 .btn-primary:hover {
@@ -183,29 +303,35 @@ a {
     );
 
   box-shadow:
-    0 16px 35px rgba(2,44,34,.25);
+    0 16px 35px rgba(2, 44, 34, 0.25);
 }
 
-/* Accent text */
+/* =========================================================
+   ACCENT TEXT
+   ========================================================= */
 
 .gold-accent {
   color: var(--gotech-gold);
 }
 
-/* Utility panel */
+/* =========================================================
+   UTILITY PANEL
+   ========================================================= */
 
 .green-panel {
   background: var(--gotech-light-green);
 
-  border: 1px solid rgba(6,78,59,.10);
+  border: 1px solid rgba(6, 78, 59, 0.10);
 
   border-radius: 1rem;
 }
 
-/* Subtle page animation */
+/* =========================================================
+   SUBTLE PAGE ANIMATION
+   ========================================================= */
 
 main {
-  animation: fadeIn .35s ease;
+  animation: fadeIn 0.35s ease;
 }
 
 @keyframes fadeIn {

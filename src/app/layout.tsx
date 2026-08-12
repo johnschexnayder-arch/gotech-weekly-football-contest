@@ -27,14 +27,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${montserrat.variable} antialiased bg-slate-100`}
-      >
+      <body className={`${montserrat.variable} antialiased`}>
         <AuthProvider>
           <div className="flex min-h-screen">
             <Sidebar />
 
-            <div className="flex min-h-screen flex-1 flex-col">
+            <div className="football-page-shell flex min-h-screen flex-1 flex-col">
               <AppHeader />
 
               <main className="flex-1 px-8 py-8">
