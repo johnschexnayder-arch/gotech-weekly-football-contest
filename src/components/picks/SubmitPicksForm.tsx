@@ -1,6 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+import GameCard from "@/components/picks/GameCard";
+import ProgressCard from "@/components/picks/ProgressCard";
+import TiebreakerCard from "@/components/picks/TiebreakerCard";
+import SubmitBar from "@/components/picks/SubmitBar";
+import PicksSubmittedModal from "@/components/picks/PicksSubmittedModal";
+
 import { savePicks } from "@/lib/picks";
 
 interface Game {
@@ -11,53 +18,96 @@ interface Game {
   home_team: string;
 }
 
+type SubmitPicksFormProps = {
+  games: Game[];
+  weekId: string;
+  weekNumber: number;
+  tiebreakerGameId: string | null;
+  isLocked: boolean;
+};
+
 export default function SubmitPicksForm({
   games,
   weekId,
-}: {
-  games: Game[];
-  weekId: string;
-}) {
+  weekNumber,
+  tiebreakerGameId,
+  isLocked,
+}: SubmitPicksFormProps) {
   const [picks, setPicks] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const [tiebreaker, setTiebreaker] = useState({
     winner: "",
-    totalPoints: "",
-    homePoints: "",
+    awayScore: "",
+    homeScore: "",
   });
 
+  const selectedCount = Object.keys(picks).length;
 
-  function selectWinner(gameId: string, team: string) {
+  const tiebreakerGame = useMemo(
+    () =>
+      games.find(
+        (game) => game.id === tiebreakerGameId
+      ) ?? null,
+    [games, tiebreakerGameId]
+  );
+
+  function selectWinner(
+    gameId: string,
+    team: string
+  ) {
+    if (isLocked || submitting) {
+      return;
+    }
+
     setPicks((current) => ({
       ...current,
       [gameId]: team,
     }));
   }
 
-
   async function handleSubmit() {
+    if (isLocked) {
+      alert("Picks are currently locked.");
+      return;
+    }
+
     const storedPlayer =
       localStorage.getItem("gotech_player");
-
 
     if (!storedPlayer) {
       alert("Please log in first.");
       return;
     }
 
-
     const player = JSON.parse(storedPlayer);
 
-
-    if (Object.keys(picks).length !== games.length) {
+    if (selectedCount !== games.length) {
       alert("Please select a winner for every game.");
       return;
     }
 
+    if (
+      tiebreakerGame &&
+      !tiebreaker.winner
+    ) {
+      alert("Please select the tiebreaker winner.");
+      return;
+    }
+
+    if (
+      tiebreakerGame &&
+      (
+        tiebreaker.awayScore === "" ||
+        tiebreaker.homeScore === ""
+      )
+    ) {
+      alert("Please enter the tiebreaker score.");
+      return;
+    }
 
     setSubmitting(true);
-
 
     try {
       await savePicks(
@@ -66,173 +116,118 @@ export default function SubmitPicksForm({
         picks,
         {
           winner: tiebreaker.winner,
-          totalPoints: Number(
-            tiebreaker.totalPoints
-          ),
-          homePoints: Number(
-            tiebreaker.homePoints
-          ),
+          totalPoints:
+            Number(tiebreaker.awayScore || 0) +
+            Number(tiebreaker.homeScore || 0),
+          homePoints:
+            Number(tiebreaker.homeScore || 0),
         }
       );
 
-
-      alert("Picks submitted successfully!");
-
-
+      setSubmitted(true);
     } catch (error) {
+      console.error(
+        "SUBMIT PICKS ERROR:",
+        error
+      );
 
-      console.error(error);
-
-      alert("Error submitting picks.");
-
+      alert(
+        "There was an error submitting your picks."
+      );
     } finally {
-
       setSubmitting(false);
-
     }
   }
 
-
   return (
-    <div>
+    <>
+      <section className="space-y-6">
+        <ProgressCard
+          selected={selectedCount}
+          total={games.length}
+        />
 
-      <div className="mb-6 rounded-xl bg-green-50 p-4">
-        Logged in as{" "}
-        <strong>
-          {
-            JSON.parse(
-              localStorage.getItem("gotech_player") || "{}"
-            ).name
-          }
-        </strong>
-      </div>
-
-
-      <div className="space-y-5">
-
-        {games.map((game) => (
-
-          <div
-            key={game.id}
-            className="rounded-lg border p-5"
-          >
-
-            <div className="mb-3 font-semibold">
-              Game {game.game_number}:{" "}
-              {game.away_team} vs {game.home_team}
+        <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-white shadow-xl">
+          <div className="bg-gradient-to-r from-green-950 via-green-900 to-green-800 px-6 py-5 text-white">
+            <div className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">
+              Week Picks
             </div>
 
+            <h2 className="mt-1 text-xl font-black tracking-tight">
+              Select Your Winners
+            </h2>
 
-            <div className="grid gap-3 md:grid-cols-2">
-
-              <button
-                type="button"
-                onClick={() =>
-                  selectWinner(
-                    game.id,
-                    game.away_team
-                  )
-                }
-                className={`rounded border px-4 py-3 ${
-                  picks[game.id] === game.away_team
-                    ? "bg-green-700 text-white"
-                    : ""
-                }`}
-              >
-                {game.away_team}
-              </button>
-
-
-              <button
-                type="button"
-                onClick={() =>
-                  selectWinner(
-                    game.id,
-                    game.home_team
-                  )
-                }
-                className={`rounded border px-4 py-3 ${
-                  picks[game.id] === game.home_team
-                    ? "bg-green-700 text-white"
-                    : ""
-                }`}
-              >
-                {game.home_team}
-              </button>
-
-            </div>
-
+            <p className="mt-1 text-sm font-medium text-yellow-200">
+              Choose one team in every matchup.
+            </p>
           </div>
 
-        ))}
+          <div>
+            {games.map((game) => (
+              <GameCard
+                key={game.id}
+                gameNumber={game.game_number}
+                awayTeam={game.away_team}
+                homeTeam={game.home_team}
+                selectedTeam={picks[game.id]}
+                onSelect={(team) =>
+                  selectWinner(game.id, team)
+                }
+                disabled={
+                  isLocked || submitting
+                }
+              />
+            ))}
+          </div>
+        </section>
 
-      </div>
-
-
-      <div className="mt-8 rounded-xl border p-5">
-
-        <h3 className="mb-4 font-bold">
-          Tiebreaker
-        </h3>
-
-
-        <div className="grid gap-4 md:grid-cols-3">
-
-          <input
-            value={tiebreaker.winner}
-            onChange={(e) =>
+        {tiebreakerGame && (
+          <TiebreakerCard
+            awayTeam={tiebreakerGame.away_team}
+            homeTeam={tiebreakerGame.home_team}
+            winner={tiebreaker.winner}
+            awayScore={tiebreaker.awayScore}
+            homeScore={tiebreaker.homeScore}
+            onWinnerChange={(team) =>
               setTiebreaker((current) => ({
                 ...current,
-                winner: e.target.value,
+                winner: team,
               }))
             }
-            placeholder="Winning Team"
-            className="rounded border px-4 py-3"
-          />
-
-
-          <input
-            type="number"
-            value={tiebreaker.totalPoints}
-            onChange={(e) =>
+            onAwayScoreChange={(score) =>
               setTiebreaker((current) => ({
                 ...current,
-                totalPoints: e.target.value,
+                awayScore: score,
               }))
             }
-            placeholder="Total Points"
-            className="rounded border px-4 py-3"
-          />
-
-
-          <input
-            type="number"
-            value={tiebreaker.homePoints}
-            onChange={(e) =>
+            onHomeScoreChange={(score) =>
               setTiebreaker((current) => ({
                 ...current,
-                homePoints: e.target.value,
+                homeScore: score,
               }))
             }
-            placeholder="Home Team Points"
-            className="rounded border px-4 py-3"
+            disabled={
+              isLocked || submitting
+            }
           />
+        )}
 
-        </div>
+        <SubmitBar
+          selected={selectedCount}
+          total={games.length}
+          onSubmit={handleSubmit}
+          disabled={
+            isLocked || submitting
+          }
+        />
+      </section>
 
-      </div>
-
-
-      <button
-        onClick={handleSubmit}
-        disabled={submitting}
-        className="mt-8 rounded bg-green-700 px-6 py-3 font-semibold text-white hover:bg-green-800"
-      >
-        {submitting
-          ? "Submitting..."
-          : "Submit Picks"}
-      </button>
-
-    </div>
+      <PicksSubmittedModal
+        open={submitted}
+        weekNumber={weekNumber}
+        totalGames={games.length}
+        onClose={() => setSubmitted(false)}
+      />
+    </>
   );
 }
