@@ -15,12 +15,11 @@ type WeeklyResult = {
 };
 
 export default async function ResultsPage() {
-  // Find the most recently completed week.
   const { data: completedWeek, error: weekError } =
     await supabase
       .from("weeks")
       .select(
-        "id, week_number, deadline, status"
+        "id, week_number, deadline, status, tiebreaker_game_id, tiebreaker_winner, tiebreaker_total_points, tiebreaker_home_points"
       )
       .eq("status", "COMPLETED")
       .order("week_number", {
@@ -74,7 +73,6 @@ export default async function ResultsPage() {
     );
   }
 
-  // Get all games for the completed week.
   const { data: games, error: gamesError } =
     await supabase
       .from("games")
@@ -95,8 +93,13 @@ export default async function ResultsPage() {
     );
   }
 
-  // Get all contest players.
-  // Admin players can also participate in the contest.
+  const tiebreakerGame =
+    (games ?? []).find(
+      (game) =>
+        game.id ===
+        completedWeek.tiebreaker_game_id
+    ) ?? null;
+
   const { data: players, error: playersError } =
     await supabase
       .from("players")
@@ -113,7 +116,6 @@ export default async function ResultsPage() {
     );
   }
 
-  // Get every entry submitted for this week.
   const { data: entries, error: entriesError } =
     await supabase
       .from("entries")
@@ -131,7 +133,6 @@ export default async function ResultsPage() {
     );
   }
 
-  // Get all picks belonging to this week's entries.
   const entryIds =
     (entries ?? []).map(
       (entry) => entry.id
@@ -167,7 +168,6 @@ export default async function ResultsPage() {
       pickData ?? [];
   }
 
-  // Build one result row for every contest player.
   const results: WeeklyResult[] =
     (players ?? []).map(
       (player) => {
@@ -211,7 +211,6 @@ export default async function ResultsPage() {
       }
     );
 
-  // Rank highest score first.
   results.sort(
     (a, b) => {
       if (
@@ -240,7 +239,6 @@ export default async function ResultsPage() {
     }
   );
 
-  // Build the CurrentWeek object expected by YourResults.
   const week: CurrentWeek = {
     id:
       completedWeek.id,
@@ -255,6 +253,7 @@ export default async function ResultsPage() {
       "COMPLETED",
 
     tiebreakerGameId:
+      completedWeek.tiebreaker_game_id ??
       null,
 
     games:
@@ -278,8 +277,6 @@ export default async function ResultsPage() {
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-6 py-10">
-      {/* Page Header */}
-
       <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl">
         <div className="p-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-4 py-1 text-xs font-bold uppercase tracking-[0.25em] text-yellow-300">
@@ -293,14 +290,11 @@ export default async function ResultsPage() {
 
           <p className="mt-3 text-green-100">
             Week{" "}
-            {completedWeek.week_number}
-            {" "}
+            {completedWeek.week_number}{" "}
             results and player performance.
           </p>
         </div>
       </section>
-
-      {/* Weekly Leaderboard */}
 
       <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-5">
@@ -309,8 +303,7 @@ export default async function ResultsPage() {
 
             <h2 className="text-xl font-bold text-green-900">
               Week{" "}
-              {completedWeek.week_number}
-              {" "}
+              {completedWeek.week_number}{" "}
               Results
             </h2>
           </div>
@@ -378,8 +371,7 @@ export default async function ResultsPage() {
 
                     <td className="px-6 py-5">
                       <span className="inline-flex rounded-full bg-green-50 px-4 py-2 font-bold text-green-900">
-                        {result.score}
-                        {" "}
+                        {result.score}{" "}
                         pts
                       </span>
                     </td>
@@ -391,10 +383,29 @@ export default async function ResultsPage() {
         </div>
       </section>
 
-      {/* Logged-in Player Results */}
-
       <YourResults
         week={week}
+        tiebreakerGame={
+          tiebreakerGame
+            ? {
+                awayTeam:
+                  tiebreakerGame.away_team,
+
+                homeTeam:
+                  tiebreakerGame.home_team,
+
+                winner:
+                  tiebreakerGame.winner ??
+                  null,
+
+                totalPoints:
+                  completedWeek.tiebreaker_total_points,
+
+                homePoints:
+                  completedWeek.tiebreaker_home_points,
+              }
+            : null
+        }
       />
     </main>
   );

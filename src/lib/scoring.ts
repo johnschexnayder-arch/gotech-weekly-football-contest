@@ -1,5 +1,120 @@
 import { supabase } from "./supabase";
 
+type TiebreakerEntry = {
+  id: string;
+  player_id: string;
+  score: number | null;
+  tiebreaker_winner: string | null;
+  tiebreaker_total_points: number | null;
+  tiebreaker_home_points: number | null;
+};
+
+type TiebreakerWeek = {
+  id: string;
+  week_number: number;
+  tiebreaker_winner: string | null;
+  tiebreaker_total_points: number | null;
+  tiebreaker_home_points: number | null;
+};
+
+function compareTiebreakerForWeek(
+  a: TiebreakerEntry,
+  b: TiebreakerEntry,
+  week: TiebreakerWeek
+): number {
+  /*
+   * Tiebreaker #1:
+   * Did the player correctly pick the winner
+   * of the tiebreaker game?
+   */
+  const aWinnerCorrect =
+    !!week.tiebreaker_winner &&
+    a.tiebreaker_winner ===
+      week.tiebreaker_winner;
+
+  const bWinnerCorrect =
+    !!week.tiebreaker_winner &&
+    b.tiebreaker_winner ===
+      week.tiebreaker_winner;
+
+  if (
+    aWinnerCorrect !==
+    bWinnerCorrect
+  ) {
+    return aWinnerCorrect
+      ? -1
+      : 1;
+  }
+
+  /*
+   * Tiebreaker #2:
+   * Closest to the total points scored
+   * in the tiebreaker game.
+   */
+  const aTotalDifference =
+    Math.abs(
+      (a.tiebreaker_total_points ??
+        9999) -
+        (week.tiebreaker_total_points ??
+          0)
+    );
+
+  const bTotalDifference =
+    Math.abs(
+      (b.tiebreaker_total_points ??
+        9999) -
+        (week.tiebreaker_total_points ??
+          0)
+    );
+
+  if (
+    aTotalDifference !==
+    bTotalDifference
+  ) {
+    return (
+      aTotalDifference -
+      bTotalDifference
+    );
+  }
+
+  /*
+   * Tiebreaker #3:
+   * Closest to the home team's score
+   * in the tiebreaker game.
+   */
+  const aHomeDifference =
+    Math.abs(
+      (a.tiebreaker_home_points ??
+        9999) -
+        (week.tiebreaker_home_points ??
+          0)
+    );
+
+  const bHomeDifference =
+    Math.abs(
+      (b.tiebreaker_home_points ??
+        9999) -
+        (week.tiebreaker_home_points ??
+          0)
+    );
+
+  if (
+    aHomeDifference !==
+    bHomeDifference
+  ) {
+    return (
+      aHomeDifference -
+      bHomeDifference
+    );
+  }
+
+  /*
+   * Still tied after all three
+   * tiebreaker criteria.
+   */
+  return 0;
+}
+
 export async function calculateWeekScore(
   weekId: string
 ) {
@@ -15,6 +130,12 @@ export async function calculateWeekScore(
   if (weekError) {
     throw new Error(
       weekError.message
+    );
+  }
+
+  if (!week) {
+    throw new Error(
+      "Week not found."
     );
   }
 
@@ -68,8 +189,8 @@ export async function calculateWeekScore(
     );
 
   /*
-   * First calculate the normal scores for
-   * every player who submitted picks.
+   * Calculate the normal score for every
+   * player who submitted picks.
    */
   for (const entry of entries ?? []) {
     const {
@@ -150,8 +271,7 @@ export async function calculateWeekScore(
   }
 
   /*
-   * Re-fetch the submitted entries after
-   * calculating their scores.
+   * Re-fetch the scored entries.
    */
   const {
     data: scoredEntries,
@@ -172,10 +292,6 @@ export async function calculateWeekScore(
     );
   }
 
-  /*
-   * At least one player is expected to submit
-   * picks every week.
-   */
   if (
     !scoredEntries ||
     scoredEntries.length === 0
@@ -197,11 +313,8 @@ export async function calculateWeekScore(
     lowestSubmittedScore - 1;
 
   /*
-   * Create an entry for every player who
-   * did not submit picks.
-   *
-   * This allows Results and Season Standings
-   * to use the same entry-based scoring system.
+   * Create an entry for players who did not
+   * submit picks.
    */
   for (const player of players ?? []) {
     if (
@@ -241,6 +354,10 @@ export async function calculateWeekScore(
     }
   }
 
+  /*
+   * Calculate the complete tiebreaker
+   * ranking after all entries exist.
+   */
   await calculateTiebreakerRanks(
     weekId
   );
@@ -270,97 +387,343 @@ export async function calculateWeekScore(
 async function calculateTiebreakerRanks(
   weekId: string
 ) {
+  /*
+   * Get the current week and its actual
+   * tiebreaker result.
+   */
   const {
-    data: week,
-    error: weekError,
+    data: currentWeek,
+    error: currentWeekError,
   } = await supabase
     .from("weeks")
-    .select("*")
-    .eq("id", weekId)
+    .select(
+      "id, week_number, tiebreaker_winner, tiebreaker_total_points, tiebreaker_home_points"
+    )
+    .eq(
+      "id",
+      weekId
+    )
     .single();
 
-  if (weekError) {
+  if (currentWeekError) {
     throw new Error(
-      weekError.message
+      currentWeekError.message
     );
   }
 
+  if (!currentWeek) {
+    throw new Error(
+      "Current week not found."
+    );
+  }
+
+  /*
+   * Explicitly give TypeScript the non-null
+   * TiebreakerWeek type. This value is safe
+   * because the null check above has already
+   * passed.
+   */
+  const tiebreakerWeek: TiebreakerWeek = {
+    id: currentWeek.id,
+    week_number:
+      currentWeek.week_number,
+    tiebreaker_winner:
+      currentWeek.tiebreaker_winner,
+    tiebreaker_total_points:
+      currentWeek.tiebreaker_total_points,
+    tiebreaker_home_points:
+      currentWeek.tiebreaker_home_points,
+  };
+
+  /*
+   * Get all entries for the current week.
+   */
   const {
-    data: entries,
-    error,
+    data: currentEntries,
+    error: currentEntriesError,
   } = await supabase
     .from("entries")
-    .select("*")
+    .select(
+      "id, player_id, score, tiebreaker_winner, tiebreaker_total_points, tiebreaker_home_points"
+    )
     .eq(
       "week_id",
       weekId
     );
 
-  if (error) {
+  if (currentEntriesError) {
     throw new Error(
-      error.message
+      currentEntriesError.message
     );
   }
 
   if (
-    !entries ||
-    entries.length === 0
+    !currentEntries ||
+    currentEntries.length === 0
   ) {
     return;
   }
 
+  /*
+   * Get all previously completed weeks,
+   * newest first.
+   *
+   * This means Week 2 is checked before
+   * Week 1 when determining a Week 3 tie.
+   */
+  const {
+    data: previousWeeks,
+    error: previousWeeksError,
+  } = await supabase
+    .from("weeks")
+    .select(
+      "id, week_number, tiebreaker_winner, tiebreaker_total_points, tiebreaker_home_points"
+    )
+    .eq(
+      "status",
+      "COMPLETED"
+    )
+    .lt(
+      "week_number",
+      tiebreakerWeek.week_number
+    )
+    .order(
+      "week_number",
+      {
+        ascending: false,
+      }
+    );
+
+  if (previousWeeksError) {
+    throw new Error(
+      previousWeeksError.message
+    );
+  }
+
+  /*
+   * Load all previous-week entries in one
+   * query so the comparisons can be performed
+   * synchronously in memory.
+   */
+  const previousWeekIds =
+    (previousWeeks ?? []).map(
+      (previousWeek) =>
+        previousWeek.id
+    );
+
+  const previousEntriesByWeek =
+    new Map<
+      string,
+      Map<
+        string,
+        TiebreakerEntry
+      >
+    >();
+
+  if (
+    previousWeekIds.length > 0
+  ) {
+    const {
+      data: previousEntries,
+      error: previousEntriesError,
+    } = await supabase
+      .from("entries")
+      .select(
+        "id, week_id, player_id, score, tiebreaker_winner, tiebreaker_total_points, tiebreaker_home_points"
+      )
+      .in(
+        "week_id",
+        previousWeekIds
+      );
+
+    if (previousEntriesError) {
+      throw new Error(
+        previousEntriesError.message
+      );
+    }
+
+    for (
+      const entry of
+        previousEntries ?? []
+    ) {
+      if (
+        !previousEntriesByWeek.has(
+          entry.week_id
+        )
+      ) {
+        previousEntriesByWeek.set(
+          entry.week_id,
+          new Map()
+        );
+      }
+
+      previousEntriesByWeek
+        .get(
+          entry.week_id
+        )!
+        .set(
+          entry.player_id,
+          entry
+        );
+    }
+  }
+
+  /*
+   * Compare two entries who have the same
+   * current-week score.
+   */
+  function compareEntries(
+    a: TiebreakerEntry,
+    b: TiebreakerEntry
+  ): number {
+    /*
+     * FIRST:
+     * Current week's tiebreaker.
+     */
+    const currentComparison =
+      compareTiebreakerForWeek(
+        a,
+        b,
+        tiebreakerWeek
+      );
+
+    if (
+      currentComparison !== 0
+    ) {
+      return currentComparison;
+    }
+
+    /*
+     * STILL TIED:
+     * Go backward through previous completed
+     * weeks, newest first.
+     */
+    for (
+      const previousWeek of
+        previousWeeks ?? []
+    ) {
+      const entriesForWeek =
+        previousEntriesByWeek.get(
+          previousWeek.id
+        );
+
+      const aPrevious =
+        entriesForWeek?.get(
+          a.player_id
+        );
+
+      const bPrevious =
+        entriesForWeek?.get(
+          b.player_id
+        );
+
+      /*
+       * Neither player has an entry for this
+       * previous week. Continue backward.
+       */
+      if (
+        !aPrevious &&
+        !bPrevious
+      ) {
+        continue;
+      }
+
+      /*
+       * Only one player has an entry.
+       * The player with the entry gets the
+       * tiebreaker advantage.
+       */
+      if (
+        aPrevious &&
+        !bPrevious
+      ) {
+        return -1;
+      }
+
+      if (
+        !aPrevious &&
+        bPrevious
+      ) {
+        return 1;
+      }
+
+      /*
+       * Both players have an entry.
+       * Apply the exact same three tiebreakers
+       * from that previous week.
+       */
+      const previousComparison =
+        compareTiebreakerForWeek(
+          aPrevious!,
+          bPrevious!,
+          previousWeek
+        );
+
+      if (
+        previousComparison !== 0
+      ) {
+        return previousComparison;
+      }
+
+      /*
+       * Still tied.
+       * Continue to the next older week.
+       */
+    }
+
+    /*
+     * They are completely tied through every
+     * available tiebreaker.
+     */
+    return 0;
+  }
+
+  /*
+   * Rank by:
+   *
+   * 1. Weekly score
+   * 2. Current-week tiebreaker
+   * 3. Previous-week tiebreaker(s) if needed
+   */
   const ranked =
-    entries
-      .map((entry) => ({
-        ...entry,
+    [
+      ...currentEntries,
+    ].sort(
+      (a, b) => {
+        const aScore =
+          a.score ?? 0;
 
-        winnerCorrect:
-          !!week.tiebreaker_winner &&
-          entry.tiebreaker_winner ===
-            week.tiebreaker_winner,
+        const bScore =
+          b.score ?? 0;
 
-        totalDifference:
-          Math.abs(
-            (entry.tiebreaker_total_points ??
-              9999) -
-              (week.tiebreaker_total_points ??
-                0)
-          ),
-
-        homeDifference:
-          Math.abs(
-            (entry.tiebreaker_home_points ??
-              9999) -
-              (week.tiebreaker_home_points ??
-                0)
-          ),
-      }))
-      .sort((a, b) => {
+        /*
+         * Weekly score is always the primary
+         * ranking criterion.
+         */
         if (
-          a.winnerCorrect !==
-          b.winnerCorrect
-        ) {
-          return a.winnerCorrect
-            ? -1
-            : 1;
-        }
-
-        if (
-          a.totalDifference !==
-          b.totalDifference
+          aScore !==
+          bScore
         ) {
           return (
-            a.totalDifference -
-            b.totalDifference
+            bScore -
+            aScore
           );
         }
 
-        return (
-          a.homeDifference -
-          b.homeDifference
+        /*
+         * Same weekly score:
+         * use the complete tiebreaker chain.
+         */
+        return compareEntries(
+          a,
+          b
         );
-      });
+      }
+    );
 
+  /*
+   * Save the resulting tiebreaker rank.
+   */
   for (
     let index = 0;
     index < ranked.length;

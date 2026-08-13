@@ -53,7 +53,7 @@ export default function HeroBanner({
             <h1 className="mt-1 text-5xl font-black tracking-tight">
               {hasWeek
                 ? `Week ${weekNumber} Picks`
-                : "Contest Coming Soon"}
+                : "Register Today! Week 1 Slate goes live on August 31."}
             </h1>
           </div>
 
@@ -103,7 +103,7 @@ export default function HeroBanner({
           <h1 className="mt-1 text-3xl font-black tracking-tight">
             {hasWeek
               ? `Week ${weekNumber} Picks`
-              : "Contest Coming Soon"}
+              : "Register Today! Week 1 Slate goes live on August 31."}
           </h1>
         </div>
 
