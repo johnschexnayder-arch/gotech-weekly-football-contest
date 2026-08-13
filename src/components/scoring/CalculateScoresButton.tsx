@@ -8,15 +8,20 @@ export default function CalculateScoresButton({
 }: {
   weekId: string;
 }) {
-  const [calculating, setCalculating] = useState(false);
+  const [calculating, setCalculating] =
+    useState(false);
 
   async function handleCalculate() {
     setCalculating(true);
 
     try {
-      await calculateWeekScore(weekId);
+      await calculateWeekScore(
+        weekId
+      );
 
-      alert("Scores calculated successfully!");
+      alert(
+        "Scores calculated successfully!"
+      );
 
       window.location.reload();
     } catch (error) {
@@ -25,7 +30,12 @@ export default function CalculateScoresButton({
         error
       );
 
-      alert("Unable to calculate scores.");
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to calculate scores.";
+
+      alert(message);
     } finally {
       setCalculating(false);
     }

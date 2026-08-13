@@ -145,11 +145,128 @@ export async function calculateWeekScore(
   } = await supabase
     .from("games")
     .select("*")
-    .eq("week_id", weekId);
+    .eq("week_id", weekId)
+    .order("game_number");
 
   if (gamesError) {
     throw new Error(
       gamesError.message
+    );
+  }
+
+  /*
+   * Do not allow scoring to begin until
+   * every required game result has been entered.
+   */
+  if (
+    !games ||
+    games.length === 0
+  ) {
+    throw new Error(
+      "No games are available for this week."
+    );
+  }
+
+  const gamesWithoutWinners =
+    games.filter(
+      (game) =>
+        !game.winner
+    );
+
+  if (
+    gamesWithoutWinners.length > 0
+  ) {
+    const gameNumbers =
+      gamesWithoutWinners
+        .map(
+          (game) =>
+            game.game_number
+        )
+        .join(", ");
+
+    throw new Error(
+      `Cannot calculate scores. Game winner(s) are missing for game(s): ${gameNumbers}.`
+    );
+  }
+
+  /*
+   * Validate the tiebreaker result before
+   * changing any player scores.
+   */
+  if (
+    !week.tiebreaker_game_id
+  ) {
+    throw new Error(
+      "Cannot calculate scores. A tiebreaker game has not been selected."
+    );
+  }
+
+  const tiebreakerGame =
+    games.find(
+      (game) =>
+        game.id ===
+        week.tiebreaker_game_id
+    );
+
+  if (!tiebreakerGame) {
+    throw new Error(
+      "Cannot calculate scores. The selected tiebreaker game does not belong to this week."
+    );
+  }
+
+  if (
+    !week.tiebreaker_winner
+  ) {
+    throw new Error(
+      "Cannot calculate scores. The tiebreaker game winner has not been entered."
+    );
+  }
+
+  if (
+    week.tiebreaker_winner !==
+      tiebreakerGame.away_team &&
+    week.tiebreaker_winner !==
+      tiebreakerGame.home_team
+  ) {
+    throw new Error(
+      "Cannot calculate scores. The tiebreaker winner must be one of the two teams in the tiebreaker game."
+    );
+  }
+
+  if (
+    typeof week.tiebreaker_total_points !==
+      "number" ||
+    !Number.isFinite(
+      week.tiebreaker_total_points
+    ) ||
+    week.tiebreaker_total_points <
+      0
+  ) {
+    throw new Error(
+      "Cannot calculate scores. The actual tiebreaker total points must be entered."
+    );
+  }
+
+  if (
+    typeof week.tiebreaker_home_points !==
+      "number" ||
+    !Number.isFinite(
+      week.tiebreaker_home_points
+    ) ||
+    week.tiebreaker_home_points <
+      0
+  ) {
+    throw new Error(
+      "Cannot calculate scores. The actual tiebreaker home-team points must be entered."
+    );
+  }
+
+  if (
+    week.tiebreaker_home_points >
+    week.tiebreaker_total_points
+  ) {
+    throw new Error(
+      "Cannot calculate scores. The tiebreaker home-team points cannot exceed the total points."
     );
   }
 
@@ -192,7 +309,10 @@ export async function calculateWeekScore(
    * Calculate the normal score for every
    * player who submitted picks.
    */
-  for (const entry of entries ?? []) {
+  for (
+    const entry of
+      entries ?? []
+  ) {
     const {
       data: picks,
       error: picksError,
@@ -214,7 +334,10 @@ export async function calculateWeekScore(
 
     let score = 0;
 
-    for (const pick of picks ?? []) {
+    for (
+      const pick of
+        picks ?? []
+    ) {
       const game =
         games?.find(
           (item) =>
@@ -233,11 +356,13 @@ export async function calculateWeekScore(
       }
 
       const {
-        error: pickUpdateError,
+        error:
+          pickUpdateError,
       } = await supabase
         .from("picks")
         .update({
-          is_correct: correct,
+          is_correct:
+            correct,
         })
         .eq(
           "id",
@@ -252,7 +377,8 @@ export async function calculateWeekScore(
     }
 
     const {
-      error: entryUpdateError,
+      error:
+        entryUpdateError,
     } = await supabase
       .from("entries")
       .update({
@@ -275,7 +401,8 @@ export async function calculateWeekScore(
    */
   const {
     data: scoredEntries,
-    error: scoredEntriesError,
+    error:
+      scoredEntriesError,
   } = await supabase
     .from("entries")
     .select(
@@ -316,15 +443,21 @@ export async function calculateWeekScore(
    * Create an entry for players who did not
    * submit picks.
    */
-  for (const player of players ?? []) {
+  for (
+    const player of
+      players ?? []
+  ) {
     if (
-      entryIds.has(player.id)
+      entryIds.has(
+        player.id
+      )
     ) {
       continue;
     }
 
     const {
-      error: missingEntryError,
+      error:
+        missingEntryError,
     } = await supabase
       .from("entries")
       .insert({
@@ -363,7 +496,8 @@ export async function calculateWeekScore(
   );
 
   const {
-    error: completeError,
+    error:
+      completeError,
   } = await supabase
     .from("weeks")
     .update({
@@ -393,7 +527,8 @@ async function calculateTiebreakerRanks(
    */
   const {
     data: currentWeek,
-    error: currentWeekError,
+    error:
+      currentWeekError,
   } = await supabase
     .from("weeks")
     .select(
@@ -417,20 +552,20 @@ async function calculateTiebreakerRanks(
     );
   }
 
-  /*
-   * Explicitly give TypeScript the non-null
-   * TiebreakerWeek type. This value is safe
-   * because the null check above has already
-   * passed.
-   */
-  const tiebreakerWeek: TiebreakerWeek = {
-    id: currentWeek.id,
+  const tiebreakerWeek:
+    TiebreakerWeek = {
+    id:
+      currentWeek.id,
+
     week_number:
       currentWeek.week_number,
+
     tiebreaker_winner:
       currentWeek.tiebreaker_winner,
+
     tiebreaker_total_points:
       currentWeek.tiebreaker_total_points,
+
     tiebreaker_home_points:
       currentWeek.tiebreaker_home_points,
   };
@@ -440,7 +575,8 @@ async function calculateTiebreakerRanks(
    */
   const {
     data: currentEntries,
-    error: currentEntriesError,
+    error:
+      currentEntriesError,
   } = await supabase
     .from("entries")
     .select(
@@ -473,7 +609,8 @@ async function calculateTiebreakerRanks(
    */
   const {
     data: previousWeeks,
-    error: previousWeeksError,
+    error:
+      previousWeeksError,
   } = await supabase
     .from("weeks")
     .select(
@@ -490,7 +627,8 @@ async function calculateTiebreakerRanks(
     .order(
       "week_number",
       {
-        ascending: false,
+        ascending:
+          false,
       }
     );
 
@@ -521,11 +659,14 @@ async function calculateTiebreakerRanks(
     >();
 
   if (
-    previousWeekIds.length > 0
+    previousWeekIds.length >
+    0
   ) {
     const {
-      data: previousEntries,
-      error: previousEntriesError,
+      data:
+        previousEntries,
+      error:
+        previousEntriesError,
     } = await supabase
       .from("entries")
       .select(
@@ -544,7 +685,8 @@ async function calculateTiebreakerRanks(
 
     for (
       const entry of
-        previousEntries ?? []
+        previousEntries ??
+        []
     ) {
       if (
         !previousEntriesByWeek.has(
@@ -660,7 +802,8 @@ async function calculateTiebreakerRanks(
         );
 
       if (
-        previousComparison !== 0
+        previousComparison !==
+        0
       ) {
         return previousComparison;
       }
@@ -723,23 +866,78 @@ async function calculateTiebreakerRanks(
 
   /*
    * Save the resulting tiebreaker rank.
+   *
+   * Players who are completely tied receive
+   * the same rank. For example:
+   *
+   * 1
+   * 1
+   * 3
+   *
+   * rather than:
+   *
+   * 1
+   * 2
+   * 3
    */
+  let previousEntry:
+    TiebreakerEntry | null =
+    null;
+
+  let previousRank = 0;
+
   for (
     let index = 0;
     index < ranked.length;
     index++
   ) {
+    const currentEntry =
+      ranked[index];
+
+    let sameAsPrevious =
+      false;
+
+    if (
+      previousEntry
+    ) {
+      const scoreSame =
+        (currentEntry.score ??
+          0) ===
+        (previousEntry.score ??
+          0);
+
+      const tiebreakerSame =
+        compareEntries(
+          currentEntry,
+          previousEntry
+        ) === 0 &&
+        compareEntries(
+          previousEntry,
+          currentEntry
+        ) === 0;
+
+      sameAsPrevious =
+        scoreSame &&
+        tiebreakerSame;
+    }
+
+    const rank =
+      sameAsPrevious
+        ? previousRank
+        : index + 1;
+
     const {
-      error: rankUpdateError,
+      error:
+        rankUpdateError,
     } = await supabase
       .from("entries")
       .update({
         tiebreaker_rank:
-          index + 1,
+          rank,
       })
       .eq(
         "id",
-        ranked[index].id
+        currentEntry.id
       );
 
     if (rankUpdateError) {
@@ -747,5 +945,11 @@ async function calculateTiebreakerRanks(
         rankUpdateError.message
       );
     }
+
+    previousEntry =
+      currentEntry;
+
+    previousRank =
+      rank;
   }
 }
