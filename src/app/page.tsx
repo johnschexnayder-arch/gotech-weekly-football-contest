@@ -32,6 +32,9 @@ export default async function HomePage() {
             games={
               dashboard.games
             }
+            weekId={
+              dashboard.weekId
+            }
           />
 
           <YourResultsCard />

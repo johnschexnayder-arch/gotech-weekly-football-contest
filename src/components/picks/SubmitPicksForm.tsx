@@ -1,6 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import GameCard from "@/components/picks/GameCard";
 import ProgressCard from "@/components/picks/ProgressCard";
@@ -8,7 +12,10 @@ import TiebreakerCard from "@/components/picks/TiebreakerCard";
 import SubmitBar from "@/components/picks/SubmitBar";
 import PicksSubmittedModal from "@/components/picks/PicksSubmittedModal";
 
-import { savePicks } from "@/lib/picks";
+import {
+  getSavedPicks,
+  savePicks,
+} from "@/lib/picks";
 
 interface Game {
   id: string;
@@ -33,25 +40,99 @@ export default function SubmitPicksForm({
   tiebreakerGameId,
   isLocked,
 }: SubmitPicksFormProps) {
-  const [picks, setPicks] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [picks, setPicks] =
+    useState<Record<string, string>>({});
 
-  const [tiebreaker, setTiebreaker] = useState({
-    winner: "",
-    awayScore: "",
-    homeScore: "",
-  });
+  const [submitting, setSubmitting] =
+    useState(false);
 
-  const selectedCount = Object.keys(picks).length;
+  const [loadingSavedPicks, setLoadingSavedPicks] =
+    useState(true);
+
+  const [submitted, setSubmitted] =
+    useState(false);
+
+  const [tiebreaker, setTiebreaker] =
+    useState({
+      winner: "",
+      awayScore: "",
+      homeScore: "",
+    });
+
+  const selectedCount =
+    Object.keys(picks).length;
 
   const tiebreakerGame = useMemo(
     () =>
       games.find(
-        (game) => game.id === tiebreakerGameId
+        (game) =>
+          game.id === tiebreakerGameId
       ) ?? null,
     [games, tiebreakerGameId]
   );
+
+  useEffect(() => {
+    async function loadSavedPicks() {
+      try {
+        const storedPlayer =
+          localStorage.getItem(
+            "gotech_player"
+          );
+
+        if (!storedPlayer) {
+          setLoadingSavedPicks(false);
+          return;
+        }
+
+        const player =
+          JSON.parse(storedPlayer);
+
+        const saved =
+          await getSavedPicks(
+            player.id,
+            weekId
+          );
+
+        setPicks(saved.picks);
+
+        const homePoints =
+          saved.tiebreaker.homePoints;
+
+        const totalPoints =
+          saved.tiebreaker.totalPoints;
+
+        const awayPoints =
+          totalPoints !== null &&
+          homePoints !== null
+            ? totalPoints - homePoints
+            : null;
+
+        setTiebreaker({
+          winner:
+            saved.tiebreaker.winner,
+
+          awayScore:
+            awayPoints !== null
+              ? String(awayPoints)
+              : "",
+
+          homeScore:
+            homePoints !== null
+              ? String(homePoints)
+              : "",
+        });
+      } catch (error) {
+        console.error(
+          "LOAD SAVED PICKS ERROR:",
+          error
+        );
+      } finally {
+        setLoadingSavedPicks(false);
+      }
+    }
+
+    loadSavedPicks();
+  }, [weekId]);
 
   function selectWinner(
     gameId: string,
@@ -74,17 +155,22 @@ export default function SubmitPicksForm({
     }
 
     const storedPlayer =
-      localStorage.getItem("gotech_player");
+      localStorage.getItem(
+        "gotech_player"
+      );
 
     if (!storedPlayer) {
       alert("Please log in first.");
       return;
     }
 
-    const player = JSON.parse(storedPlayer);
+    const player =
+      JSON.parse(storedPlayer);
 
     if (selectedCount !== games.length) {
-      alert("Please select a winner for every game.");
+      alert(
+        "Please select a winner for every game."
+      );
       return;
     }
 
@@ -92,7 +178,9 @@ export default function SubmitPicksForm({
       tiebreakerGame &&
       !tiebreaker.winner
     ) {
-      alert("Please select the tiebreaker winner.");
+      alert(
+        "Please select the tiebreaker winner."
+      );
       return;
     }
 
@@ -103,7 +191,9 @@ export default function SubmitPicksForm({
         tiebreaker.homeScore === ""
       )
     ) {
-      alert("Please enter the tiebreaker score.");
+      alert(
+        "Please enter the tiebreaker score."
+      );
       return;
     }
 
@@ -115,12 +205,21 @@ export default function SubmitPicksForm({
         weekId,
         picks,
         {
-          winner: tiebreaker.winner,
+          winner:
+            tiebreaker.winner,
+
           totalPoints:
-            Number(tiebreaker.awayScore || 0) +
-            Number(tiebreaker.homeScore || 0),
+            Number(
+              tiebreaker.awayScore || 0
+            ) +
+            Number(
+              tiebreaker.homeScore || 0
+            ),
+
           homePoints:
-            Number(tiebreaker.homeScore || 0),
+            Number(
+              tiebreaker.homeScore || 0
+            ),
         }
       );
 
@@ -139,12 +238,26 @@ export default function SubmitPicksForm({
     }
   }
 
+  if (loadingSavedPicks) {
+    return (
+      <section className="rounded-3xl border border-yellow-500/20 bg-white p-8 shadow-xl">
+        <div className="text-sm font-semibold text-slate-500">
+          Loading your picks...
+        </div>
+      </section>
+    );
+  }
+
   return (
     <>
       <section className="space-y-6">
         <ProgressCard
-          selected={selectedCount}
-          total={games.length}
+          selected={
+            selectedCount
+          }
+          total={
+            games.length
+          }
         />
 
         <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-white shadow-xl">
@@ -158,7 +271,9 @@ export default function SubmitPicksForm({
             </h2>
 
             <p className="mt-1 text-sm font-medium text-yellow-200">
-              Choose one team in every matchup.
+              {isLocked
+                ? "Your submitted picks are shown below."
+                : "Choose one team in every matchup."}
             </p>
           </div>
 
@@ -166,15 +281,27 @@ export default function SubmitPicksForm({
             {games.map((game) => (
               <GameCard
                 key={game.id}
-                gameNumber={game.game_number}
-                awayTeam={game.away_team}
-                homeTeam={game.home_team}
-                selectedTeam={picks[game.id]}
+                gameNumber={
+                  game.game_number
+                }
+                awayTeam={
+                  game.away_team
+                }
+                homeTeam={
+                  game.home_team
+                }
+                selectedTeam={
+                  picks[game.id]
+                }
                 onSelect={(team) =>
-                  selectWinner(game.id, team)
+                  selectWinner(
+                    game.id,
+                    team
+                  )
                 }
                 disabled={
-                  isLocked || submitting
+                  isLocked ||
+                  submitting
                 }
               />
             ))}
@@ -183,50 +310,84 @@ export default function SubmitPicksForm({
 
         {tiebreakerGame && (
           <TiebreakerCard
-            awayTeam={tiebreakerGame.away_team}
-            homeTeam={tiebreakerGame.home_team}
-            winner={tiebreaker.winner}
-            awayScore={tiebreaker.awayScore}
-            homeScore={tiebreaker.homeScore}
+            awayTeam={
+              tiebreakerGame.away_team
+            }
+            homeTeam={
+              tiebreakerGame.home_team
+            }
+            winner={
+              tiebreaker.winner
+            }
+            awayScore={
+              tiebreaker.awayScore
+            }
+            homeScore={
+              tiebreaker.homeScore
+            }
             onWinnerChange={(team) =>
-              setTiebreaker((current) => ({
-                ...current,
-                winner: team,
-              }))
+              setTiebreaker(
+                (current) => ({
+                  ...current,
+                  winner: team,
+                })
+              )
             }
-            onAwayScoreChange={(score) =>
-              setTiebreaker((current) => ({
-                ...current,
-                awayScore: score,
-              }))
+            onAwayScoreChange={(
+              score
+            ) =>
+              setTiebreaker(
+                (current) => ({
+                  ...current,
+                  awayScore: score,
+                })
+              )
             }
-            onHomeScoreChange={(score) =>
-              setTiebreaker((current) => ({
-                ...current,
-                homeScore: score,
-              }))
+            onHomeScoreChange={(
+              score
+            ) =>
+              setTiebreaker(
+                (current) => ({
+                  ...current,
+                  homeScore: score,
+                })
+              )
             }
             disabled={
-              isLocked || submitting
+              isLocked ||
+              submitting
             }
           />
         )}
 
         <SubmitBar
-          selected={selectedCount}
-          total={games.length}
-          onSubmit={handleSubmit}
+          selected={
+            selectedCount
+          }
+          total={
+            games.length
+          }
+          onSubmit={
+            handleSubmit
+          }
           disabled={
-            isLocked || submitting
+            isLocked ||
+            submitting
           }
         />
       </section>
 
       <PicksSubmittedModal
         open={submitted}
-        weekNumber={weekNumber}
-        totalGames={games.length}
-        onClose={() => setSubmitted(false)}
+        weekNumber={
+          weekNumber
+        }
+        totalGames={
+          games.length
+        }
+        onClose={() =>
+          setSubmitted(false)
+        }
       />
     </>
   );
