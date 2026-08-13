@@ -26,8 +26,7 @@ export default function AppHeader() {
   const router = useRouter();
   const { player, refreshPlayer } = useAuth();
 
-  const [menuOpen, setMenuOpen] =
-    useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function handleLogout() {
     logoutPlayer();
@@ -43,9 +42,7 @@ export default function AppHeader() {
   const initials = player?.name
     ? player.name
         .split(" ")
-        .map((name: string) =>
-          name.charAt(0)
-        )
+        .map((name: string) => name.charAt(0))
         .join("")
         .substring(0, 2)
         .toUpperCase()
@@ -67,7 +64,7 @@ export default function AppHeader() {
             </div>
 
             <p className="mt-1 hidden text-sm text-slate-500 md:block">
-              15 Weeks | 12 Games Per Week | Picks Due Each Saturday Morning
+              15 Weeks | 12 Games Per Week | Picks Due Each Friday Afternoon
             </p>
           </div>
 
@@ -129,11 +126,7 @@ export default function AppHeader() {
                   ? "Close navigation menu"
                   : "Open navigation menu"
               }
-              onClick={() =>
-                setMenuOpen(
-                  (open) => !open
-                )
-              }
+              onClick={() => setMenuOpen((open) => !open)}
               className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-green-900 shadow-sm transition hover:bg-green-50 md:hidden"
             >
               {menuOpen ? (

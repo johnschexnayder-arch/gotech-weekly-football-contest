@@ -9,32 +9,21 @@ import { getDashboard } from "@/lib/dashboard";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const dashboard =
-    await getDashboard();
+  const dashboard = await getDashboard();
 
   return (
     <main className="space-y-8">
       <HeroBanner
-        weekNumber={
-          dashboard.hero.weekNumber
-        }
-        deadline={
-          dashboard.hero.deadline
-        }
-        gameCount={
-          dashboard.hero.gameCount
-        }
+        weekNumber={dashboard.hero.weekNumber}
+        deadline={dashboard.hero.deadline}
+        gameCount={dashboard.hero.gameCount}
       />
 
       <section className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-8">
           <YourPicksCard
-            games={
-              dashboard.games
-            }
-            weekId={
-              dashboard.weekId
-            }
+            games={dashboard.games}
+            weekId={dashboard.weekId}
           />
 
           <YourResultsCard />
@@ -42,18 +31,12 @@ export default async function HomePage() {
 
         <aside className="space-y-8">
           <LeaderboardCard
-            players={
-              dashboard.leaderboard
-            }
+            players={dashboard.seasonLeaderboard}
           />
 
           <LastWeekTop10Card
-            weekNumber={
-              dashboard.lastWeekTop10.weekNumber
-            }
-            players={
-              dashboard.lastWeekTop10.players
-            }
+            weekNumber={dashboard.lastWeekTop10.weekNumber}
+            players={dashboard.lastWeekTop10.players}
           />
         </aside>
       </section>

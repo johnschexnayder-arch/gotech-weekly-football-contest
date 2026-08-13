@@ -7,6 +7,8 @@ import {
 
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 type PlayerStanding = {
   playerId: string;
   playerName: string;
@@ -52,8 +54,7 @@ export default async function StandingsPage() {
   const completedEntries =
     (entries ?? []).filter(
       (entry: any) =>
-        entry.weeks?.status ===
-        "COMPLETED"
+        entry.weeks?.status === "COMPLETED"
     );
 
   const standings: PlayerStanding[] =
@@ -61,15 +62,13 @@ export default async function StandingsPage() {
       const playerEntries =
         completedEntries.filter(
           (entry: any) =>
-            entry.player_id ===
-            player.id
+            entry.player_id === player.id
         );
 
       const totalScore =
         playerEntries.reduce(
           (total, entry: any) =>
-            total +
-            (entry.score ?? 0),
+            total + (entry.score ?? 0),
           0
         );
 
@@ -77,30 +76,17 @@ export default async function StandingsPage() {
         playerId: player.id,
         playerName: player.name,
         totalScore,
-        weeksPlayed:
-          playerEntries.length,
+        weeksPlayed: playerEntries.length,
       };
     });
 
   standings.sort((a, b) => {
-    if (
-      b.totalScore !==
-      a.totalScore
-    ) {
-      return (
-        b.totalScore -
-        a.totalScore
-      );
+    if (b.totalScore !== a.totalScore) {
+      return b.totalScore - a.totalScore;
     }
 
-    if (
-      b.weeksPlayed !==
-      a.weeksPlayed
-    ) {
-      return (
-        b.weeksPlayed -
-        a.weeksPlayed
-      );
+    if (b.weeksPlayed !== a.weeksPlayed) {
+      return b.weeksPlayed - a.weeksPlayed;
     }
 
     return a.playerName.localeCompare(
@@ -123,9 +109,8 @@ export default async function StandingsPage() {
           </h1>
 
           <p className="mt-3 max-w-2xl text-green-100">
-            See who's leading the
-            season and chasing the
-            championship.
+            See who's leading the season and
+            chasing the championship.
           </p>
         </div>
       </section>
@@ -168,51 +153,39 @@ export default async function StandingsPage() {
             </thead>
 
             <tbody>
-              {standings.length ===
-              0 ? (
+              {standings.length === 0 ? (
                 <tr>
                   <td
                     colSpan={4}
                     className="px-6 py-16 text-center text-lg font-semibold text-slate-500"
                   >
-                    No players
-                    available.
+                    No players available.
                   </td>
                 </tr>
               ) : (
                 standings.map(
-                  (
-                    player,
-                    index
-                  ) => (
+                  (player, index) => (
                     <tr
-                      key={
-                        player.playerId
-                      }
+                      key={player.playerId}
                       className="border-t border-slate-100 transition-colors hover:bg-slate-50"
                     >
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center text-lg">
-                            {index ===
-                            0 ? (
+                            {index === 0 ? (
                               "🥇"
-                            ) : index ===
-                              1 ? (
+                            ) : index === 1 ? (
                               "🥈"
-                            ) : index ===
-                              2 ? (
+                            ) : index === 2 ? (
                               "🥉"
                             ) : (
                               <span className="text-sm font-bold text-slate-500">
-                                {index +
-                                  1}
+                                {index + 1}
                               </span>
                             )}
                           </div>
 
-                          {index ===
-                            0 && (
+                          {index === 0 && (
                             <Crown className="h-5 w-5 text-yellow-500" />
                           )}
                         </div>
@@ -222,30 +195,19 @@ export default async function StandingsPage() {
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 font-bold text-green-900">
                             {player.playerName
-                              .split(
-                                " "
-                              )
+                              .split(" ")
                               .map(
-                                (
-                                  name
-                                ) =>
+                                (name) =>
                                   name[0]
                               )
-                              .join(
-                                ""
-                              )
-                              .substring(
-                                0,
-                                2
-                              )
+                              .join("")
+                              .substring(0, 2)
                               .toUpperCase()}
                           </div>
 
                           <div>
                             <div className="font-bold text-slate-900">
-                              {
-                                player.playerName
-                              }
+                              {player.playerName}
                             </div>
                           </div>
                         </div>
@@ -253,9 +215,7 @@ export default async function StandingsPage() {
 
                       <td className="px-6 py-5">
                         <span className="font-semibold text-slate-700">
-                          {
-                            player.weeksPlayed
-                          }
+                          {player.weeksPlayed}
                         </span>
                       </td>
 
@@ -263,10 +223,7 @@ export default async function StandingsPage() {
                         <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 font-bold text-green-900">
                           <Medal className="h-4 w-4 text-yellow-500" />
 
-                          {
-                            player.totalScore
-                          }{" "}
-                          pts
+                          {player.totalScore} pts
                         </div>
                       </td>
                     </tr>
