@@ -45,21 +45,11 @@ export default function HeroBanner({
       {/* Desktop layout */}
       <div className="relative hidden min-h-[280px] flex-col justify-between gap-8 px-8 py-8 lg:flex lg:flex-row lg:items-center">
         <div className="flex flex-col">
-          <div className={hasWeek ? "lg:-translate-y-10" : ""}>
-            <div
-              className={`text-xs font-black uppercase tracking-[0.45em] ${
-                hasWeek
-                  ? "text-yellow-400"
-                  : "text-white lg:-translate-y-16"
-              }`}
-            >
-              GOTECH Weekly Football Contest
-            </div>
-
+          <div>
             <h1
-              className={`mt-1 font-black tracking-tight ${
+              className={`font-black tracking-tight ${
                 hasWeek
-                  ? "text-5xl"
+                  ? "text-5xl lg:-translate-y-10"
                   : "text-4xl text-yellow-400 lg:translate-y-24"
               }`}
             >
@@ -108,10 +98,6 @@ export default function HeroBanner({
       <div className="relative bg-green-950 lg:hidden">
         {/* Mobile headline */}
         <div className="relative z-10 px-5 pb-4 pt-5 text-center">
-          <div className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-400">
-            GOTECH Weekly Football Contest
-          </div>
-
           <h1 className="mt-1 text-3xl font-black tracking-tight">
             {hasWeek
               ? `Week ${weekNumber} Picks`
