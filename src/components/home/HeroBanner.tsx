@@ -42,18 +42,20 @@ export default function HeroBanner({
       <div className="absolute inset-0 bg-gradient-to-r from-green-950/75 via-green-950/30 to-green-950/15" />
 
       <div className="relative flex min-h-[280px] flex-col justify-between gap-8 px-8 py-8 lg:flex-row lg:items-center">
-        <div className="flex h-full flex-col lg:-translate-y-10">
+        <div className="flex flex-col justify-center lg:translate-y-4">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.45em] text-yellow-400">
               GOTECH Weekly Football Contest
             </div>
 
-            <h1 className="mt-[-4px] text-5xl font-black tracking-tight">
-              {hasWeek ? `Week ${weekNumber} Picks` : "Contest Coming Soon"}
+            <h1 className="mt-1 text-5xl font-black tracking-tight">
+              {hasWeek
+                ? `Week ${weekNumber} Picks`
+                : "Contest Coming Soon"}
             </h1>
           </div>
 
-          <p className="relative top-18 mt-24 max-w-xl text-base font-medium text-green-100">
+          <p className="mt-4 max-w-xl text-base font-medium text-green-100">
             {hasWeek
               ? "Put your football knowledge to the test."
               : "Register today!!!! Week 1 games will be released on August 31."}
@@ -66,7 +68,9 @@ export default function HeroBanner({
                   Games
                 </div>
 
-                <div className="mt-1 text-3xl font-black">{gameCount}</div>
+                <div className="mt-1 text-3xl font-black">
+                  {gameCount}
+                </div>
               </div>
 
               <div className="rounded-xl border border-yellow-400/30 bg-black/30 px-5 py-3 backdrop-blur">
