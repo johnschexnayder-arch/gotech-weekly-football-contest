@@ -45,12 +45,24 @@ export default function HeroBanner({
       {/* Desktop layout */}
       <div className="relative hidden min-h-[280px] flex-col justify-between gap-8 px-8 py-8 lg:flex lg:flex-row lg:items-center">
         <div className="flex flex-col">
-          <div className="lg:-translate-y-10">
-            <div className="text-xs font-black uppercase tracking-[0.45em] text-yellow-400">
+          <div className={hasWeek ? "lg:-translate-y-10" : ""}>
+            <div
+              className={`text-xs font-black uppercase tracking-[0.45em] ${
+                hasWeek
+                  ? "text-yellow-400"
+                  : "text-white lg:-translate-y-16"
+              }`}
+            >
               GOTECH Weekly Football Contest
             </div>
 
-            <h1 className="mt-1 text-5xl font-black tracking-tight">
+            <h1
+              className={`mt-1 font-black tracking-tight ${
+                hasWeek
+                  ? "text-5xl"
+                  : "text-4xl text-yellow-400 lg:translate-y-24"
+              }`}
+            >
               {hasWeek
                 ? `Week ${weekNumber} Picks`
                 : "Register Today! Week 1 Slate goes live on August 31."}
@@ -107,9 +119,7 @@ export default function HeroBanner({
           </h1>
         </div>
 
-        {/* Mobile football image.
-            The aspect ratio matches the original 1939 x 811 image,
-            so the photograph cannot be stretched or distorted. */}
+        {/* Mobile football image */}
         <div className="relative mx-3 aspect-[1939/811] overflow-hidden rounded-2xl border border-yellow-400/20">
           <Image
             src="/images/gotech-football-field.png"
