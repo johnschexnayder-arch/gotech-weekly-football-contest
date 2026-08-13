@@ -50,7 +50,7 @@ export default function HeroBanner({
               className={`font-black tracking-tight ${
                 hasWeek
                   ? "text-5xl lg:-translate-y-10"
-                  : "text-4xl text-yellow-400 lg:translate-y-24"
+                  : "text-4xl text-yellow-400 lg:translate-y-28"
               }`}
             >
               {hasWeek
