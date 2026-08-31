@@ -1,5 +1,29 @@
 import { supabase } from "@/lib/supabase";
 
+const TIME_ZONE = "America/Chicago";
+
+function formatKickoff(kickoff: string | null) {
+  if (!kickoff) {
+    return "Kickoff TBD";
+  }
+
+  const date = new Date(kickoff);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Kickoff TBD";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+}
+
 export type HeroData = {
   weekNumber: number;
   deadline: string;
@@ -102,6 +126,7 @@ export async function getDashboard(): Promise<DashboardData> {
         "RECENT WEEK ERROR:",
         recentWeekError
       );
+
       throw new Error(
         JSON.stringify(recentWeekError)
       );
@@ -126,6 +151,7 @@ export async function getDashboard(): Promise<DashboardData> {
         "PLAYERS ERROR:",
         playersError
       );
+
       throw new Error(
         JSON.stringify(playersError)
       );
@@ -174,6 +200,7 @@ export async function getDashboard(): Promise<DashboardData> {
       "GAMES ERROR:",
       gamesError
     );
+
     throw new Error(
       JSON.stringify(gamesError)
     );
@@ -197,6 +224,7 @@ export async function getDashboard(): Promise<DashboardData> {
       "PLAYERS ERROR:",
       playersError
     );
+
     throw new Error(
       JSON.stringify(playersError)
     );
@@ -221,6 +249,7 @@ export async function getDashboard(): Promise<DashboardData> {
       "WEEKLY ENTRIES ERROR:",
       weeklyError
     );
+
     throw new Error(
       JSON.stringify(weeklyError)
     );
@@ -324,6 +353,7 @@ export async function getDashboard(): Promise<DashboardData> {
       "SEASON ERROR:",
       seasonError
     );
+
     throw new Error(
       JSON.stringify(seasonError)
     );
@@ -546,8 +576,9 @@ export async function getDashboard(): Promise<DashboardData> {
       home:
         game.home_team,
       kickoff:
-        game.kickoff ??
-        "Kickoff TBD",
+        formatKickoff(
+          game.kickoff
+        ),
     })),
 
     stats: {

@@ -183,9 +183,12 @@ export default async function GamesPage({
                     </td>
 
                     <td className="px-5 py-4 text-sm text-slate-600">
-                      {new Date(
-                        game.kickoff
-                      ).toLocaleString()}
+                      {new Date(game.kickoff).toLocaleString(
+                        "en-US",
+                        {
+                          timeZone: "America/Chicago",
+                        }
+                      )}
                     </td>
 
                     <td className="px-5 py-4">
