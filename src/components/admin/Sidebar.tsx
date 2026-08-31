@@ -9,11 +9,24 @@ const adminLinks = [
   { href: "/admin/weeks", label: "Weeks", icon: "📅" },
   { href: "/admin/games", label: "Games", icon: "🏈" },
   { href: "/admin/players", label: "Players", icon: "👥" },
-  { href: "/admin/scoring", label: "Score Week", icon: "✅" },
+  {
+    href: "/admin/submissions",
+    label: "Pick Status",
+    icon: "📋",
+  },
+  {
+    href: "/admin/scoring",
+    label: "Score Week",
+    icon: "✅",
+  },
 ];
 
 const publicLinks = [
-  { href: "/", label: "Public Site", icon: "🌐" },
+  {
+    href: "/",
+    label: "Public Site",
+    icon: "🌐",
+  },
 ];
 
 export default function Sidebar() {
