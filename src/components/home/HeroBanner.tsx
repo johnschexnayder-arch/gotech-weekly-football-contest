@@ -2,22 +2,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { supabase } from "@/lib/supabase";
 
 type HeroBannerProps = {
   weekNumber: number;
   deadline: string;
   gameCount: number;
+  weekId: string | null;
 };
 
 export default function HeroBanner({
   weekNumber,
   deadline,
   gameCount,
+  weekId,
 }: HeroBannerProps) {
   const hasWeek = weekNumber > 0;
 
+  const [picksComplete, setPicksComplete] =
+    useState(false);
+
   const formattedDeadline = hasWeek
     ? new Date(deadline).toLocaleString("en-US", {
+        timeZone: "America/Chicago",
         weekday: "short",
         month: "short",
         day: "numeric",
@@ -25,6 +34,58 @@ export default function HeroBanner({
         minute: "2-digit",
       })
     : "";
+
+  useEffect(() => {
+    async function checkPicks() {
+      if (!hasWeek || !weekId) {
+        setPicksComplete(false);
+        return;
+      }
+
+      try {
+        const storedPlayer =
+          localStorage.getItem("gotech_player");
+
+        if (!storedPlayer) {
+          setPicksComplete(false);
+          return;
+        }
+
+        const player = JSON.parse(storedPlayer);
+
+        if (!player?.id) {
+          setPicksComplete(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("entries")
+          .select("id")
+          .eq("player_id", player.id)
+          .eq("week_id", weekId)
+          .maybeSingle();
+
+        if (error) {
+          throw error;
+        }
+
+        setPicksComplete(!!data);
+      } catch (error) {
+        console.error(
+          "CHECK HOMEPAGE PICKS ERROR:",
+          error
+        );
+
+        setPicksComplete(false);
+      }
+    }
+
+    checkPicks();
+  }, [hasWeek, weekId]);
+
+  const buttonText = picksComplete
+    ? "✓ PICKS COMPLETE"
+    : "🏈 MAKE YOUR PICKS";
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-yellow-600/30 text-white shadow-2xl">
@@ -89,7 +150,7 @@ export default function HeroBanner({
             href="/picks"
             className="group inline-flex items-center justify-center rounded-2xl border-2 border-yellow-400 bg-gradient-to-r from-yellow-500 to-yellow-600 px-10 py-5 text-base font-black uppercase tracking-wide text-green-950 shadow-xl transition-all duration-200 hover:-translate-y-1 hover:from-yellow-400 hover:to-yellow-500 lg:self-start lg:-mt-2"
           >
-            <span>🏈 Make Your Picks</span>
+            <span>{buttonText}</span>
           </Link>
         )}
       </div>
@@ -147,7 +208,7 @@ export default function HeroBanner({
               href="/picks"
               className="mt-3 flex w-full items-center justify-center rounded-2xl border-2 border-yellow-400 bg-gradient-to-r from-yellow-500 to-yellow-600 px-5 py-3 text-sm font-black uppercase tracking-wide text-green-950 shadow-xl transition-all duration-200 hover:-translate-y-1 hover:from-yellow-400 hover:to-yellow-500"
             >
-              <span>🏈 Make Your Picks</span>
+              <span>{buttonText}</span>
             </Link>
           </div>
         )}

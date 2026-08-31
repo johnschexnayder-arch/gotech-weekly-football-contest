@@ -17,6 +17,7 @@ export default async function HomePage() {
         weekNumber={dashboard.hero.weekNumber}
         deadline={dashboard.hero.deadline}
         gameCount={dashboard.hero.gameCount}
+        weekId={dashboard.weekId}
       />
 
       <section className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
@@ -35,8 +36,12 @@ export default async function HomePage() {
           />
 
           <LastWeekTop10Card
-            weekNumber={dashboard.lastWeekTop10.weekNumber}
-            players={dashboard.lastWeekTop10.players}
+            weekNumber={
+              dashboard.lastWeekTop10.weekNumber
+            }
+            players={
+              dashboard.lastWeekTop10.players
+            }
           />
         </aside>
       </section>
