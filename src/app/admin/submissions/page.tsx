@@ -1,10 +1,12 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 
 import { supabase } from "@/lib/supabase";
 import { getPlayers } from "@/lib/players";
 import { getWeeks } from "@/lib/weeks";
+import { getGames } from "@/lib/games";
 
 type Player = {
   id: string;
@@ -31,6 +33,7 @@ export default function SubmissionStatusPage() {
   const [loading, setLoading] = useState(true);
   const [loadingSubmissions, setLoadingSubmissions] =
     useState(false);
+  const [exporting, setExporting] = useState(false);
 
   async function loadInitialData() {
     try {
@@ -124,6 +127,304 @@ export default function SubmissionStatusPage() {
     (week) => week.id === selectedWeekId
   );
 
+  async function handleExport() {
+    if (!selectedWeekId || !selectedWeek) {
+      alert("Please select a week first.");
+      return;
+    }
+
+    setExporting(true);
+
+    try {
+      const games = await getGames(selectedWeekId);
+
+      if (games.length === 0) {
+        alert(
+          "There are no games entered for this week."
+        );
+        return;
+      }
+
+      const {
+        data: entries,
+        error: entriesError,
+      } = await supabase
+        .from("entries")
+        .select(
+          `
+          id,
+          player_id,
+          tiebreaker_winner,
+          tiebreaker_total_points,
+          tiebreaker_home_points,
+          submitted_at
+          `
+        )
+        .eq("week_id", selectedWeekId);
+
+      if (entriesError) {
+        throw entriesError;
+      }
+
+      const entryIds =
+        (entries ?? []).map(
+          (entry) => entry.id
+        );
+
+      let picks: {
+        entry_id: string;
+        game_id: string;
+        selected_team: string;
+      }[] = [];
+
+      if (entryIds.length > 0) {
+        const {
+          data: picksData,
+          error: picksError,
+        } = await supabase
+          .from("picks")
+          .select(
+            "entry_id, game_id, selected_team"
+          )
+          .in("entry_id", entryIds);
+
+        if (picksError) {
+          throw picksError;
+        }
+
+        picks = picksData ?? [];
+      }
+
+      const entriesByPlayer = new Map<
+        string,
+        (typeof entries)[number]
+      >();
+
+      for (const entry of entries ?? []) {
+        entriesByPlayer.set(
+          entry.player_id,
+          entry
+        );
+      }
+
+      const picksByEntry = new Map<
+        string,
+        Map<string, string>
+      >();
+
+      for (const pick of picks) {
+        if (!picksByEntry.has(pick.entry_id)) {
+          picksByEntry.set(
+            pick.entry_id,
+            new Map<string, string>()
+          );
+        }
+
+        picksByEntry
+          .get(pick.entry_id)!
+          .set(
+            pick.game_id,
+            pick.selected_team
+          );
+      }
+
+      const rows = players.map((player) => {
+        const entry =
+          entriesByPlayer.get(player.id);
+
+        const playerPicks = entry
+          ? picksByEntry.get(entry.id) ??
+            new Map<string, string>()
+          : new Map<string, string>();
+
+        const row: Record<
+          string,
+          string | number
+        > = {
+          Player: player.name,
+          Email: player.email ?? "",
+          Status: entry
+            ? "SUBMITTED"
+            : "NOT SUBMITTED",
+        };
+
+        games.forEach((game, index) => {
+          const matchup =
+            `${game.away_team} @ ${game.home_team}`;
+
+          const header =
+            `Game ${index + 1} - ${matchup}`;
+
+          row[header] =
+            entry
+              ? playerPicks.get(game.id) ?? ""
+              : "";
+        });
+
+        row["Tiebreaker Winner"] =
+          entry?.tiebreaker_winner ?? "";
+
+        row["Tiebreaker Total Points"] =
+          entry?.tiebreaker_total_points ?? "";
+
+        row["Tiebreaker Home Points"] =
+          entry?.tiebreaker_home_points ?? "";
+
+        row["Submitted At"] =
+          entry?.submitted_at
+            ? new Date(
+                entry.submitted_at
+              ).toLocaleString(
+                "en-US",
+                {
+                  timeZone:
+                    "America/Chicago",
+                }
+              )
+            : "";
+
+        return row;
+      });
+
+      const worksheet =
+        XLSX.utils.json_to_sheet(rows);
+
+      const columnWidths = [
+        { wch: 24 },
+        { wch: 32 },
+        { wch: 16 },
+      ];
+
+      games.forEach(() => {
+        columnWidths.push({
+          wch: 30,
+        });
+      });
+
+      columnWidths.push(
+        { wch: 24 },
+        { wch: 24 },
+        { wch: 24 },
+        { wch: 26 }
+      );
+
+      worksheet["!cols"] =
+        columnWidths;
+
+      worksheet["!freeze"] = {
+        xSplit: 3,
+        ySplit: 1,
+      };
+
+      const workbook =
+        XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        `Week ${selectedWeek.week_number}`
+      );
+
+      const backupInfo = [
+        {
+          Field: "Contest",
+          Value:
+            "GOTECH Weekly Football Contest",
+        },
+        {
+          Field: "Week",
+          Value:
+            selectedWeek.week_number,
+        },
+        {
+          Field: "Week Status",
+          Value:
+            selectedWeek.status,
+        },
+        {
+          Field: "Deadline",
+          Value:
+            new Date(
+              selectedWeek.deadline
+            ).toLocaleString(
+              "en-US",
+              {
+                timeZone:
+                  "America/Chicago",
+              }
+            ),
+        },
+        {
+          Field: "Exported",
+          Value:
+            new Date().toLocaleString(
+              "en-US",
+              {
+                timeZone:
+                  "America/Chicago",
+              }
+            ),
+        },
+        {
+          Field: "Registered Players",
+          Value:
+            players.length,
+        },
+        {
+          Field: "Submitted Players",
+          Value:
+            submittedCount,
+        },
+        {
+          Field: "Not Submitted",
+          Value:
+            notSubmittedCount,
+        },
+      ];
+
+      const infoWorksheet =
+        XLSX.utils.json_to_sheet(
+          backupInfo
+        );
+
+      infoWorksheet["!cols"] = [
+        { wch: 24 },
+        { wch: 45 },
+      ];
+
+      XLSX.utils.book_append_sheet(
+        workbook,
+        infoWorksheet,
+        "Backup Info"
+      );
+
+      const fileName =
+        `GOTECH_Week_${selectedWeek.week_number}_Picks_Backup.xlsx`;
+
+      XLSX.writeFile(
+        workbook,
+        fileName
+      );
+    } catch (error) {
+      console.error(
+        "EXPORT PICKS ERROR:",
+        error
+      );
+
+      if (error instanceof Error) {
+        alert(
+          `Unable to export picks.\n\n${error.message}`
+        );
+      } else {
+        alert(
+          "Unable to export picks."
+        );
+      }
+    } finally {
+      setExporting(false);
+    }
+  }
+
   if (loading) {
     return (
       <main className="p-6">
@@ -161,7 +462,9 @@ export default function SubmissionStatusPage() {
             id="week"
             value={selectedWeekId}
             onChange={(event) =>
-              setSelectedWeekId(event.target.value)
+              setSelectedWeekId(
+                event.target.value
+              )
             }
             className="rounded-xl border-2 border-green-100 bg-green-50 px-4 py-2 font-semibold text-green-950 outline-none focus:border-yellow-400"
           >
@@ -174,7 +477,28 @@ export default function SubmissionStatusPage() {
               </option>
             ))}
           </select>
+
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={
+              exporting ||
+              loadingSubmissions ||
+              !selectedWeekId
+            }
+            className="rounded-xl border-2 border-yellow-400 bg-green-950 px-5 py-2 font-black text-white shadow-lg transition hover:bg-green-900 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {exporting
+              ? "Creating Excel File..."
+              : "📊 Export Week Picks"}
+          </button>
         </div>
+
+        <p className="mt-3 text-sm font-medium text-slate-500">
+          Downloads a backup of every player's picks,
+          tiebreakers, and submission status for the
+          selected week.
+        </p>
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
