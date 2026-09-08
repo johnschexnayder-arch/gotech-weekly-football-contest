@@ -43,32 +43,26 @@ function compareTiebreakerForWeek(
 
   /*
    * Player tiebreaker_total_points stores
-   * the predicted AWAY-team score.
+   * the predicted TOTAL points scored in the
+   * tiebreaker game.
    *
    * Player tiebreaker_home_points stores
    * the predicted HOME-team score.
    *
-   * Therefore:
-   *
-   * predicted total =
-   * away prediction + home prediction
+   * Therefore, tiebreaker_total_points is
+   * already the player's predicted total.
+   * Do not add the home score to it.
    */
   const aPredictedTotal =
     a.tiebreaker_total_points !==
-      null &&
-    a.tiebreaker_home_points !==
       null
-      ? a.tiebreaker_total_points +
-        a.tiebreaker_home_points
+      ? a.tiebreaker_total_points
       : null;
 
   const bPredictedTotal =
     b.tiebreaker_total_points !==
-      null &&
-    b.tiebreaker_home_points !==
       null
-      ? b.tiebreaker_total_points +
-        b.tiebreaker_home_points
+      ? b.tiebreaker_total_points
       : null;
 
   const actualTotal =

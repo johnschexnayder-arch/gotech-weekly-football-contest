@@ -55,8 +55,8 @@ export default function SubmitPicksForm({
   const [tiebreaker, setTiebreaker] =
     useState({
       winner: "",
-      awayScore: "",
-      homeScore: "",
+      totalPoints: "",
+      homePoints: "",
     });
 
   const selectedCount =
@@ -95,30 +95,18 @@ export default function SubmitPicksForm({
 
         setPicks(saved.picks);
 
-        const homePoints =
-          saved.tiebreaker.homePoints;
-
-        const totalPoints =
-          saved.tiebreaker.totalPoints;
-
-        const awayPoints =
-          totalPoints !== null &&
-          homePoints !== null
-            ? totalPoints - homePoints
-            : null;
-
         setTiebreaker({
           winner:
             saved.tiebreaker.winner,
 
-          awayScore:
-            awayPoints !== null
-              ? String(awayPoints)
+          totalPoints:
+            saved.tiebreaker.totalPoints !== null
+              ? String(saved.tiebreaker.totalPoints)
               : "",
 
-          homeScore:
-            homePoints !== null
-              ? String(homePoints)
+          homePoints:
+            saved.tiebreaker.homePoints !== null
+              ? String(saved.tiebreaker.homePoints)
               : "",
         });
       } catch (error) {
@@ -187,8 +175,8 @@ export default function SubmitPicksForm({
     if (
       tiebreakerGame &&
       (
-        tiebreaker.awayScore === "" ||
-        tiebreaker.homeScore === ""
+        tiebreaker.totalPoints === "" ||
+        tiebreaker.homePoints === ""
       )
     ) {
       alert(
@@ -210,15 +198,12 @@ export default function SubmitPicksForm({
 
           totalPoints:
             Number(
-              tiebreaker.awayScore || 0
-            ) +
-            Number(
-              tiebreaker.homeScore || 0
+              tiebreaker.totalPoints || 0
             ),
 
           homePoints:
             Number(
-              tiebreaker.homeScore || 0
+              tiebreaker.homePoints || 0
             ),
         }
       );
@@ -319,11 +304,11 @@ export default function SubmitPicksForm({
             winner={
               tiebreaker.winner
             }
-            awayScore={
-              tiebreaker.awayScore
+            totalPoints={
+              tiebreaker.totalPoints
             }
-            homeScore={
-              tiebreaker.homeScore
+            homePoints={
+              tiebreaker.homePoints
             }
             onWinnerChange={(team) =>
               setTiebreaker(
@@ -333,23 +318,23 @@ export default function SubmitPicksForm({
                 })
               )
             }
-            onAwayScoreChange={(
+            onTotalPointsChange={(
               score
             ) =>
               setTiebreaker(
                 (current) => ({
                   ...current,
-                  awayScore: score,
+                  totalPoints: score,
                 })
               )
             }
-            onHomeScoreChange={(
+            onHomePointsChange={(
               score
             ) =>
               setTiebreaker(
                 (current) => ({
                   ...current,
-                  homeScore: score,
+                  homePoints: score,
                 })
               )
             }
