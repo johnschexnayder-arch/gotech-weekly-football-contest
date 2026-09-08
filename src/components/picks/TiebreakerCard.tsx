@@ -66,6 +66,23 @@ export default function TiebreakerCard({
       </div>
 
       <div className="space-y-6 p-6">
+        <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-4">
+          <p className="text-sm leading-6 text-red-700">
+            <span className="font-black uppercase">
+              Important:
+            </span>{" "}
+            Total Points means the{" "}
+            <span className="font-black">
+              combined score of BOTH teams
+            </span>
+            , NOT the away team&apos;s score.
+          </p>
+
+          <p className="mt-1 text-xs font-bold text-red-600">
+            Please enter your tiebreaker predictions carefully.
+          </p>
+        </div>
+
         <div>
           <div className="mb-3 text-sm font-black uppercase tracking-wide text-green-700">
             Who wins?
@@ -99,9 +116,13 @@ export default function TiebreakerCard({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-sm font-black text-slate-700">
-                Total Points
+              <label className="text-sm font-black text-red-600">
+                Total Points — Both Teams Combined
               </label>
+
+              <p className="mt-1 text-xs font-semibold leading-5 text-red-600">
+                Enter the combined points scored by BOTH teams.
+              </p>
 
               <input
                 type="number"
@@ -118,8 +139,12 @@ export default function TiebreakerCard({
 
             <div>
               <label className="text-sm font-black text-slate-700">
-                {homeTeam} Points
+                Home Team Points
               </label>
+
+              <p className="mt-1 text-xs font-semibold leading-5 text-red-600">
+                Enter the points scored by the HOME team only.
+              </p>
 
               <input
                 type="number"
@@ -135,9 +160,20 @@ export default function TiebreakerCard({
             </div>
           </div>
 
-          <p className="mt-3 text-xs font-medium text-slate-500">
-            Example: if the game ends 51–10, enter Total Points = 61 and {homeTeam} Points = 51.
-          </p>
+          <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-700">
+            <span className="font-black text-green-950">
+              Example:
+            </span>{" "}
+            If the final score is 51–10, enter{" "}
+            <span className="font-black text-green-950">
+              Total Points = 61
+            </span>{" "}
+            and{" "}
+            <span className="font-black text-green-950">
+              Home Team Points = 51
+            </span>
+            .
+          </div>
         </div>
 
         <div className="rounded-2xl border border-yellow-400/30 bg-gradient-to-r from-green-50 to-yellow-50 p-5 text-sm font-semibold text-green-950">
@@ -149,9 +185,9 @@ export default function TiebreakerCard({
           <br />
           2. Closest to total points scored
           <br />
-          3. Closest to home team's points
+          3. Closest to home team&apos;s points
           <br />
-          4. Previous week's tiebreaker if still tied
+          4. Previous week&apos;s tiebreaker if still tied
         </div>
       </div>
     </section>
