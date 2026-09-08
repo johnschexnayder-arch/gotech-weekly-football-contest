@@ -139,11 +139,11 @@ export default function TiebreakerCard({
 
             <div>
               <label className="text-sm font-black text-slate-700">
-                Home Team Points
+                {homeTeam} Points
               </label>
 
               <p className="mt-1 text-xs font-semibold leading-5 text-red-600">
-                Enter the points scored by the HOME team only.
+                Enter the points scored by {homeTeam}, the HOME team, only.
               </p>
 
               <input
@@ -170,7 +170,7 @@ export default function TiebreakerCard({
             </span>{" "}
             and{" "}
             <span className="font-black text-green-950">
-              Home Team Points = 51
+              {homeTeam} Points = 51
             </span>
             .
           </div>
