@@ -22,11 +22,6 @@ function compareTiebreakerForWeek(
   b: TiebreakerEntry,
   week: TiebreakerWeek
 ): number {
-  /*
-   * Tiebreaker #1:
-   * Did the player correctly pick the winner
-   * of the tiebreaker game?
-   */
   const aWinnerCorrect =
     !!week.tiebreaker_winner &&
     a.tiebreaker_winner ===
@@ -47,25 +42,54 @@ function compareTiebreakerForWeek(
   }
 
   /*
-   * Tiebreaker #2:
-   * Closest to the total points scored
-   * in the tiebreaker game.
+   * Player tiebreaker_total_points stores
+   * the predicted AWAY-team score.
+   *
+   * Player tiebreaker_home_points stores
+   * the predicted HOME-team score.
+   *
+   * Therefore:
+   *
+   * predicted total =
+   * away prediction + home prediction
    */
+  const aPredictedTotal =
+    a.tiebreaker_total_points !==
+      null &&
+    a.tiebreaker_home_points !==
+      null
+      ? a.tiebreaker_total_points +
+        a.tiebreaker_home_points
+      : null;
+
+  const bPredictedTotal =
+    b.tiebreaker_total_points !==
+      null &&
+    b.tiebreaker_home_points !==
+      null
+      ? b.tiebreaker_total_points +
+        b.tiebreaker_home_points
+      : null;
+
+  const actualTotal =
+    week.tiebreaker_total_points ??
+    0;
+
   const aTotalDifference =
-    Math.abs(
-      (a.tiebreaker_total_points ??
-        9999) -
-        (week.tiebreaker_total_points ??
-          0)
-    );
+    aPredictedTotal !== null
+      ? Math.abs(
+          aPredictedTotal -
+            actualTotal
+        )
+      : 9999;
 
   const bTotalDifference =
-    Math.abs(
-      (b.tiebreaker_total_points ??
-        9999) -
-        (week.tiebreaker_total_points ??
-          0)
-    );
+    bPredictedTotal !== null
+      ? Math.abs(
+          bPredictedTotal -
+            actualTotal
+        )
+      : 9999;
 
   if (
     aTotalDifference !==
@@ -78,9 +102,8 @@ function compareTiebreakerForWeek(
   }
 
   /*
-   * Tiebreaker #3:
-   * Closest to the home team's score
-   * in the tiebreaker game.
+   * Third tiebreaker:
+   * closest to actual HOME-team score.
    */
   const aHomeDifference =
     Math.abs(
@@ -108,10 +131,6 @@ function compareTiebreakerForWeek(
     );
   }
 
-  /*
-   * Still tied after all three
-   * tiebreaker criteria.
-   */
   return 0;
 }
 
@@ -154,10 +173,6 @@ export async function calculateWeekScore(
     );
   }
 
-  /*
-   * Do not allow scoring to begin until
-   * every required game result has been entered.
-   */
   if (
     !games ||
     games.length === 0
@@ -189,10 +204,6 @@ export async function calculateWeekScore(
     );
   }
 
-  /*
-   * Validate the tiebreaker result before
-   * changing any player scores.
-   */
   if (
     !week.tiebreaker_game_id
   ) {
@@ -305,10 +316,6 @@ export async function calculateWeekScore(
       )
     );
 
-  /*
-   * Calculate the normal score for every
-   * player who submitted picks.
-   */
   for (
     const entry of
       entries ?? []
@@ -339,7 +346,7 @@ export async function calculateWeekScore(
         picks ?? []
     ) {
       const game =
-        games?.find(
+        games.find(
           (item) =>
             item.id ===
             pick.game_id
@@ -396,9 +403,6 @@ export async function calculateWeekScore(
     }
   }
 
-  /*
-   * Re-fetch the scored entries.
-   */
   const {
     data: scoredEntries,
     error:
@@ -439,10 +443,6 @@ export async function calculateWeekScore(
   const noPickScore =
     lowestSubmittedScore - 1;
 
-  /*
-   * Create an entry for players who did not
-   * submit picks.
-   */
   for (
     const player of
       players ?? []
@@ -487,10 +487,6 @@ export async function calculateWeekScore(
     }
   }
 
-  /*
-   * Calculate the complete tiebreaker
-   * ranking after all entries exist.
-   */
   await calculateTiebreakerRanks(
     weekId
   );
@@ -521,10 +517,6 @@ export async function calculateWeekScore(
 async function calculateTiebreakerRanks(
   weekId: string
 ) {
-  /*
-   * Get the current week and its actual
-   * tiebreaker result.
-   */
   const {
     data: currentWeek,
     error:
@@ -570,9 +562,6 @@ async function calculateTiebreakerRanks(
       currentWeek.tiebreaker_home_points,
   };
 
-  /*
-   * Get all entries for the current week.
-   */
   const {
     data: currentEntries,
     error:
@@ -600,13 +589,6 @@ async function calculateTiebreakerRanks(
     return;
   }
 
-  /*
-   * Get all previously completed weeks,
-   * newest first.
-   *
-   * This means Week 2 is checked before
-   * Week 1 when determining a Week 3 tie.
-   */
   const {
     data: previousWeeks,
     error:
@@ -638,11 +620,6 @@ async function calculateTiebreakerRanks(
     );
   }
 
-  /*
-   * Load all previous-week entries in one
-   * query so the comparisons can be performed
-   * synchronously in memory.
-   */
   const previousWeekIds =
     (previousWeeks ?? []).map(
       (previousWeek) =>
@@ -710,18 +687,10 @@ async function calculateTiebreakerRanks(
     }
   }
 
-  /*
-   * Compare two entries who have the same
-   * current-week score.
-   */
   function compareEntries(
     a: TiebreakerEntry,
     b: TiebreakerEntry
   ): number {
-    /*
-     * FIRST:
-     * Current week's tiebreaker.
-     */
     const currentComparison =
       compareTiebreakerForWeek(
         a,
@@ -735,11 +704,6 @@ async function calculateTiebreakerRanks(
       return currentComparison;
     }
 
-    /*
-     * STILL TIED:
-     * Go backward through previous completed
-     * weeks, newest first.
-     */
     for (
       const previousWeek of
         previousWeeks ?? []
@@ -759,10 +723,6 @@ async function calculateTiebreakerRanks(
           b.player_id
         );
 
-      /*
-       * Neither player has an entry for this
-       * previous week. Continue backward.
-       */
       if (
         !aPrevious &&
         !bPrevious
@@ -770,11 +730,6 @@ async function calculateTiebreakerRanks(
         continue;
       }
 
-      /*
-       * Only one player has an entry.
-       * The player with the entry gets the
-       * tiebreaker advantage.
-       */
       if (
         aPrevious &&
         !bPrevious
@@ -789,11 +744,6 @@ async function calculateTiebreakerRanks(
         return 1;
       }
 
-      /*
-       * Both players have an entry.
-       * Apply the exact same three tiebreakers
-       * from that previous week.
-       */
       const previousComparison =
         compareTiebreakerForWeek(
           aPrevious!,
@@ -807,27 +757,11 @@ async function calculateTiebreakerRanks(
       ) {
         return previousComparison;
       }
-
-      /*
-       * Still tied.
-       * Continue to the next older week.
-       */
     }
 
-    /*
-     * They are completely tied through every
-     * available tiebreaker.
-     */
     return 0;
   }
 
-  /*
-   * Rank by:
-   *
-   * 1. Weekly score
-   * 2. Current-week tiebreaker
-   * 3. Previous-week tiebreaker(s) if needed
-   */
   const ranked =
     [
       ...currentEntries,
@@ -839,10 +773,6 @@ async function calculateTiebreakerRanks(
         const bScore =
           b.score ?? 0;
 
-        /*
-         * Weekly score is always the primary
-         * ranking criterion.
-         */
         if (
           aScore !==
           bScore
@@ -853,10 +783,6 @@ async function calculateTiebreakerRanks(
           );
         }
 
-        /*
-         * Same weekly score:
-         * use the complete tiebreaker chain.
-         */
         return compareEntries(
           a,
           b
@@ -864,22 +790,6 @@ async function calculateTiebreakerRanks(
       }
     );
 
-  /*
-   * Save the resulting tiebreaker rank.
-   *
-   * Players who are completely tied receive
-   * the same rank. For example:
-   *
-   * 1
-   * 1
-   * 3
-   *
-   * rather than:
-   *
-   * 1
-   * 2
-   * 3
-   */
   let previousEntry:
     TiebreakerEntry | null =
     null;
