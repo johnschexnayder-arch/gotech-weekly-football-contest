@@ -2,6 +2,7 @@ import { Trophy, BarChart3 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import YourResults from "@/components/results/YourResults";
+import WeekSelector from "@/components/results/WeekSelector";
 import { CurrentWeek } from "@/lib/games";
 
 export const dynamic = "force-dynamic";
@@ -15,35 +16,39 @@ type WeeklyResult = {
   hasEntry: boolean;
 };
 
-export default async function ResultsPage() {
+type ResultsPageProps = {
+  searchParams: Promise<{
+    week?: string | string[] | undefined;
+  }>;
+};
+
+export default async function ResultsPage({
+  searchParams,
+}: ResultsPageProps) {
+  const params = await searchParams;
+
+  const requestedWeekId = Array.isArray(params.week)
+    ? params.week[0]
+    : params.week;
+
   const {
-    data: completedWeek,
-    error: weekError,
+    data: completedWeeks,
+    error: weeksError,
   } = await supabase
     .from("weeks")
     .select(
       "id, week_number, deadline, status, tiebreaker_game_id, tiebreaker_winner, tiebreaker_total_points, tiebreaker_home_points"
     )
-    .eq(
-      "status",
-      "COMPLETED"
-    )
-    .order(
-      "week_number",
-      {
-        ascending: false,
-      }
-    )
-    .limit(1)
-    .maybeSingle();
+    .eq("status", "COMPLETED")
+    .order("week_number", {
+      ascending: false,
+    });
 
-  if (weekError) {
-    throw new Error(
-      weekError.message
-    );
+  if (weeksError) {
+    throw new Error(weeksError.message);
   }
 
-  if (!completedWeek) {
+  if (!completedWeeks || completedWeeks.length === 0) {
     return (
       <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
         <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl">
@@ -82,6 +87,21 @@ export default async function ResultsPage() {
     );
   }
 
+  /*
+   * Default to the most recent completed week.
+   *
+   * If a specific week was requested through
+   * ?week=<week-id>, use that week when it exists.
+   *
+   * If the requested ID is invalid or does not
+   * belong to a completed week, safely fall back
+   * to the most recent completed week.
+   */
+  const selectedWeek =
+    completedWeeks.find(
+      (week) => week.id === requestedWeekId
+    ) ?? completedWeeks[0];
+
   const {
     data: games,
     error: gamesError,
@@ -90,25 +110,17 @@ export default async function ResultsPage() {
     .select(
       "id, game_number, away_team, home_team, winner"
     )
-    .eq(
-      "week_id",
-      completedWeek.id
-    )
-    .order(
-      "game_number"
-    );
+    .eq("week_id", selectedWeek.id)
+    .order("game_number");
 
   if (gamesError) {
-    throw new Error(
-      gamesError.message
-    );
+    throw new Error(gamesError.message);
   }
 
   const tiebreakerGame =
     (games ?? []).find(
       (game) =>
-        game.id ===
-        completedWeek.tiebreaker_game_id
+        game.id === selectedWeek.tiebreaker_game_id
     ) ?? null;
 
   const {
@@ -116,17 +128,11 @@ export default async function ResultsPage() {
     error: playersError,
   } = await supabase
     .from("players")
-    .select(
-      "id, name"
-    )
-    .order(
-      "name"
-    );
+    .select("id, name")
+    .order("name");
 
   if (playersError) {
-    throw new Error(
-      playersError.message
-    );
+    throw new Error(playersError.message);
   }
 
   const {
@@ -137,21 +143,15 @@ export default async function ResultsPage() {
     .select(
       "id, player_id, score, tiebreaker_rank"
     )
-    .eq(
-      "week_id",
-      completedWeek.id
-    );
+    .eq("week_id", selectedWeek.id);
 
   if (entriesError) {
-    throw new Error(
-      entriesError.message
-    );
+    throw new Error(entriesError.message);
   }
 
   const entryIds =
     (entries ?? []).map(
-      (entry) =>
-        entry.id
+      (entry) => entry.id
     );
 
   let picks: {
@@ -160,9 +160,7 @@ export default async function ResultsPage() {
     is_correct: boolean | null;
   }[] = [];
 
-  if (
-    entryIds.length > 0
-  ) {
+  if (entryIds.length > 0) {
     const {
       data: pickData,
       error: picksError,
@@ -171,19 +169,13 @@ export default async function ResultsPage() {
       .select(
         "entry_id, game_id, is_correct"
       )
-      .in(
-        "entry_id",
-        entryIds
-      );
+      .in("entry_id", entryIds);
 
     if (picksError) {
-      throw new Error(
-        picksError.message
-      );
+      throw new Error(picksError.message);
     }
 
-    picks =
-      pickData ?? [];
+    picks = pickData ?? [];
   }
 
   const results: WeeklyResult[] =
@@ -280,19 +272,19 @@ export default async function ResultsPage() {
 
   const week: CurrentWeek = {
     id:
-      completedWeek.id,
+      selectedWeek.id,
 
     weekNumber:
-      completedWeek.week_number,
+      selectedWeek.week_number,
 
     deadline:
-      completedWeek.deadline,
+      selectedWeek.deadline,
 
     status:
       "COMPLETED",
 
     tiebreakerGameId:
-      completedWeek.tiebreaker_game_id ??
+      selectedWeek.tiebreaker_game_id ??
       null,
 
     games:
@@ -329,11 +321,24 @@ export default async function ResultsPage() {
 
           <p className="mt-3 text-green-100">
             Week{" "}
-            {completedWeek.week_number}{" "}
+            {selectedWeek.week_number}{" "}
             results and player performance.
           </p>
         </div>
       </section>
+
+      <WeekSelector
+        weeks={completedWeeks.map(
+          (week) => ({
+            id: week.id,
+            week_number:
+              week.week_number,
+          })
+        )}
+        selectedWeekId={
+          selectedWeek.id
+        }
+      />
 
       <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-5">
@@ -342,7 +347,7 @@ export default async function ResultsPage() {
 
             <h2 className="text-xl font-bold text-green-900">
               Week{" "}
-              {completedWeek.week_number}{" "}
+              {selectedWeek.week_number}{" "}
               Results
             </h2>
           </div>
@@ -443,10 +448,10 @@ export default async function ResultsPage() {
                   null,
 
                 totalPoints:
-                  completedWeek.tiebreaker_total_points,
+                  selectedWeek.tiebreaker_total_points,
 
                 homePoints:
-                  completedWeek.tiebreaker_home_points,
+                  selectedWeek.tiebreaker_home_points,
               }
             : null
         }
