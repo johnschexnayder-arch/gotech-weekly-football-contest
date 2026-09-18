@@ -13,25 +13,23 @@ type LeaderboardCardProps = {
 export default function LeaderboardCard({
   players = [],
 }: LeaderboardCardProps) {
+  let currentRank = 0;
+  let previousScore: number | null = null;
+
   const rankedPlayers = players.map(
     (player, index) => {
-      if (index === 0) {
-        return {
-          ...player,
-          rank: 1,
-        };
+      if (
+        index === 0 ||
+        player.score !== previousScore
+      ) {
+        currentRank = index + 1;
       }
 
-      const previousPlayer =
-        players[index - 1];
+      previousScore = player.score;
 
       return {
         ...player,
-        rank:
-          player.score ===
-          previousPlayer.score
-            ? previousPlayer.rank
-            : index + 1,
+        rank: currentRank,
       };
     }
   );
