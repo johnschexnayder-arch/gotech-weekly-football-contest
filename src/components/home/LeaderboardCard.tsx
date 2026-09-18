@@ -13,6 +13,29 @@ type LeaderboardCardProps = {
 export default function LeaderboardCard({
   players = [],
 }: LeaderboardCardProps) {
+  const rankedPlayers = players.map(
+    (player, index) => {
+      if (index === 0) {
+        return {
+          ...player,
+          rank: 1,
+        };
+      }
+
+      const previousPlayer =
+        players[index - 1];
+
+      return {
+        ...player,
+        rank:
+          player.score ===
+          previousPlayer.score
+            ? previousPlayer.rank
+            : index + 1,
+      };
+    }
+  );
+
   return (
     <section className="overflow-hidden rounded-3xl bg-white shadow-lg">
       <div className="flex items-center justify-between bg-green-900 px-6 py-5 text-white">
@@ -28,32 +51,34 @@ export default function LeaderboardCard({
       </div>
 
       <div className="divide-y divide-slate-100 px-6">
-        {players.slice(0, 5).map((player, index) => (
-          <div
-            key={player.name}
-            className="flex items-center justify-between py-4"
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
-                  index < 3
-                    ? "bg-green-50 text-green-900"
-                    : "bg-slate-100 text-slate-500"
-                }`}
-              >
-                {player.rank ?? index + 1}
+        {rankedPlayers
+          .slice(0, 5)
+          .map((player) => (
+            <div
+              key={player.name}
+              className="flex items-center justify-between py-4"
+            >
+              <div className="flex items-center gap-4">
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
+                    player.rank === 1
+                      ? "bg-green-50 text-green-900"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  {player.rank}
+                </div>
+
+                <div className="text-sm font-semibold text-slate-900">
+                  {player.name}
+                </div>
               </div>
 
-              <div className="text-sm font-semibold text-slate-900">
-                {player.name}
+              <div className="text-sm font-semibold text-green-900">
+                {player.score} pts
               </div>
             </div>
-
-            <div className="text-sm font-semibold text-green-900">
-              {player.score} pts
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       <div className="border-t border-slate-100 px-6 py-4">

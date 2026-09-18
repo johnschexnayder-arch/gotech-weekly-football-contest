@@ -14,6 +14,7 @@ type PlayerStanding = {
   playerName: string;
   totalScore: number;
   weeksPlayed: number;
+  rank: number;
 };
 
 export default async function StandingsPage() {
@@ -57,7 +58,10 @@ export default async function StandingsPage() {
         entry.weeks?.status === "COMPLETED"
     );
 
-  const standings: PlayerStanding[] =
+  const standings: Omit<
+    PlayerStanding,
+    "rank"
+  >[] =
     (players ?? []).map((player) => {
       const playerEntries =
         completedEntries.filter(
@@ -94,6 +98,26 @@ export default async function StandingsPage() {
     );
   });
 
+  let currentRank = 0;
+  let previousScore: number | null = null;
+
+  const rankedStandings: PlayerStanding[] =
+    standings.map((player, index) => {
+      if (
+        index === 0 ||
+        player.totalScore !== previousScore
+      ) {
+        currentRank = index + 1;
+      }
+
+      previousScore = player.totalScore;
+
+      return {
+        ...player,
+        rank: currentRank,
+      };
+    });
+
   return (
     <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
       <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl">
@@ -126,7 +150,7 @@ export default async function StandingsPage() {
           </div>
 
           <div className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-900">
-            {standings.length} Players
+            {rankedStandings.length} Players
           </div>
         </div>
 
@@ -153,7 +177,7 @@ export default async function StandingsPage() {
             </thead>
 
             <tbody>
-              {standings.length === 0 ? (
+              {rankedStandings.length === 0 ? (
                 <tr>
                   <td
                     colSpan={4}
@@ -163,8 +187,8 @@ export default async function StandingsPage() {
                   </td>
                 </tr>
               ) : (
-                standings.map(
-                  (player, index) => (
+                rankedStandings.map(
+                  (player) => (
                     <tr
                       key={player.playerId}
                       className="border-t border-slate-100 transition-colors hover:bg-slate-50"
@@ -172,20 +196,20 @@ export default async function StandingsPage() {
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center text-lg">
-                            {index === 0 ? (
+                            {player.rank === 1 ? (
                               "🥇"
-                            ) : index === 1 ? (
+                            ) : player.rank === 2 ? (
                               "🥈"
-                            ) : index === 2 ? (
+                            ) : player.rank === 3 ? (
                               "🥉"
                             ) : (
                               <span className="text-sm font-bold text-slate-500">
-                                {index + 1}
+                                {player.rank}
                               </span>
                             )}
                           </div>
 
-                          {index === 0 && (
+                          {player.rank === 1 && (
                             <Crown className="h-5 w-5 text-yellow-500" />
                           )}
                         </div>
