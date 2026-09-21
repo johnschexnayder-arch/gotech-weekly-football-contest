@@ -92,7 +92,7 @@ export default function HeroBanner({
       {/* Desktop background */}
       <div className="absolute inset-0 hidden lg:block">
         <Image
-          src="/images/ole-miss-endzone.png"
+          src="/images/gotech-football-field.png"
           alt=""
           fill
           priority
@@ -169,7 +169,7 @@ export default function HeroBanner({
         {/* Mobile football image */}
         <div className="relative mx-3 aspect-[1939/811] overflow-hidden rounded-2xl border border-yellow-400/20">
           <Image
-            src="/images/ole-miss-endzone.png"
+            src="/images/gotech-football-field.png"
             alt=""
             fill
             sizes="calc(100vw - 24px)"
