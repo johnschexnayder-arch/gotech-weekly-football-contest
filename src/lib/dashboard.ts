@@ -65,6 +65,7 @@ export type WeeklyAwards = {
 
 export type PerfectSlatePlayer = {
   name: string;
+  weekNumber: number;
   score: number;
 };
 
@@ -323,18 +324,6 @@ export async function getDashboard(): Promise<DashboardData> {
         : undefined,
   };
 
-  const perfectSlatePlayers =
-    leaderboard
-      .filter(
-        (player) =>
-          player.score ===
-          totalGames
-      )
-      .map((player) => ({
-        name: player.name,
-        score: player.score,
-      }));
-
   const {
     data: seasonEntries,
     error: seasonError,
@@ -442,8 +431,7 @@ export async function getDashboard(): Promise<DashboardData> {
     )
     .order("week_number", {
       ascending: false,
-    })
-    .limit(1);
+    });
 
   if (completedWeeksError) {
     console.error(
@@ -456,6 +444,161 @@ export async function getDashboard(): Promise<DashboardData> {
         completedWeeksError
       )
     );
+  }
+
+  let perfectSlatePlayers: PerfectSlatePlayer[] =
+    [];
+
+  if (
+    completedWeeks &&
+    completedWeeks.length > 0
+  ) {
+    const completedWeekIds =
+      completedWeeks.map(
+        (completedWeek) =>
+          completedWeek.id
+      );
+
+    const {
+      data: completedGames,
+      error:
+        completedGamesError,
+    } = await supabase
+      .from("games")
+      .select(
+        "week_id"
+      )
+      .in(
+        "week_id",
+        completedWeekIds
+      );
+
+    if (completedGamesError) {
+      console.error(
+        "COMPLETED GAMES ERROR:",
+        completedGamesError
+      );
+
+      throw new Error(
+        JSON.stringify(
+          completedGamesError
+        )
+      );
+    }
+
+    const gameCountsByWeek: Record<
+      string,
+      number
+    > = {};
+
+    completedGames?.forEach(
+      (game) => {
+        gameCountsByWeek[
+          game.week_id
+        ] =
+          (gameCountsByWeek[
+            game.week_id
+          ] ?? 0) + 1;
+      }
+    );
+
+    const {
+      data: completedEntriesForPerfectSlates,
+      error:
+        perfectSlateEntriesError,
+    } = await supabase
+      .from("entries")
+      .select(`
+        week_id,
+        score,
+        players (
+          name
+        )
+      `)
+      .in(
+        "week_id",
+        completedWeekIds
+      );
+
+    if (perfectSlateEntriesError) {
+      console.error(
+        "PERFECT SLATE ENTRIES ERROR:",
+        perfectSlateEntriesError
+      );
+
+      throw new Error(
+        JSON.stringify(
+          perfectSlateEntriesError
+        )
+      );
+    }
+
+    const weekNumbersById: Record<
+      string,
+      number
+    > = {};
+
+    completedWeeks.forEach(
+      (completedWeek) => {
+        weekNumbersById[
+          completedWeek.id
+        ] =
+          completedWeek.week_number;
+      }
+    );
+
+    perfectSlatePlayers =
+      (
+        completedEntriesForPerfectSlates ??
+        []
+      )
+        .filter((entry) => {
+          const gameCount =
+            gameCountsByWeek[
+              entry.week_id
+            ] ?? 0;
+
+          return (
+            gameCount > 0 &&
+            (entry.score ?? 0) ===
+              gameCount
+          );
+        })
+        .map((entry) => {
+          const player =
+            Array.isArray(
+              entry.players
+            )
+              ? entry.players[0]
+              : entry.players;
+
+          return {
+            name:
+              player?.name ??
+              "Unknown Player",
+            weekNumber:
+              weekNumbersById[
+                entry.week_id
+              ],
+            score:
+              entry.score ?? 0,
+          };
+        })
+        .sort((a, b) => {
+          if (
+            a.weekNumber !==
+            b.weekNumber
+          ) {
+            return (
+              a.weekNumber -
+              b.weekNumber
+            );
+          }
+
+          return a.name.localeCompare(
+            b.name
+          );
+        });
   }
 
   const completedWeek =

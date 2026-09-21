@@ -3,6 +3,7 @@ import YourPicksCard from "@/components/home/YourPicksCard";
 import YourResultsCard from "@/components/home/YourResultsCard";
 import LeaderboardCard from "@/components/home/LeaderboardCard";
 import LastWeekTop10Card from "@/components/home/LastWeekTop10Card";
+import PerfectSlateCard from "@/components/home/PerfectSlateCard";
 
 import { getDashboard } from "@/lib/dashboard";
 
@@ -33,6 +34,10 @@ export default async function HomePage() {
         <aside className="space-y-8">
           <LeaderboardCard
             players={dashboard.seasonLeaderboard}
+          />
+
+          <PerfectSlateCard
+            players={dashboard.perfectSlatePlayers}
           />
 
           <LastWeekTop10Card
