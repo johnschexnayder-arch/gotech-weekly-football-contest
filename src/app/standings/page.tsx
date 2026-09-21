@@ -118,6 +118,13 @@ export default async function StandingsPage() {
       };
     });
 
+  const lowestScore =
+    rankedStandings.length > 0
+      ? rankedStandings[
+          rankedStandings.length - 1
+        ].totalScore
+      : null;
+
   return (
     <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
       <section className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-green-950 via-green-900 to-green-800 text-white shadow-2xl">
@@ -188,70 +195,86 @@ export default async function StandingsPage() {
                 </tr>
               ) : (
                 rankedStandings.map(
-                  (player) => (
-                    <tr
-                      key={player.playerId}
-                      className="border-t border-slate-100 transition-colors hover:bg-slate-50"
-                    >
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center text-lg">
-                            {player.rank === 1 ? (
-                              "🥇"
-                            ) : player.rank === 2 ? (
-                              "🥈"
-                            ) : player.rank === 3 ? (
-                              "🥉"
-                            ) : (
-                              <span className="text-sm font-bold text-slate-500">
-                                {player.rank}
-                              </span>
-                            )}
+                  (player) => {
+                    const isLastPlace =
+                      lowestScore !== null &&
+                      player.totalScore ===
+                        lowestScore;
+
+                    return (
+                      <tr
+                        key={player.playerId}
+                        className="border-t border-slate-100 transition-colors hover:bg-slate-50"
+                      >
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`flex h-10 items-center justify-center text-lg ${
+                                isLastPlace
+                                  ? "min-w-[92px] text-sm font-black text-red-600"
+                                  : "w-10"
+                              }`}
+                            >
+                              {isLastPlace ? (
+                                "❌ LAST ❌"
+                              ) : player.rank === 1 ? (
+                                "🥇"
+                              ) : player.rank === 2 ? (
+                                "🥈"
+                              ) : player.rank === 3 ? (
+                                "🥉"
+                              ) : (
+                                <span className="text-sm font-bold text-slate-500">
+                                  {player.rank}
+                                </span>
+                              )}
+                            </div>
+
+                            {player.rank === 1 &&
+                              !isLastPlace && (
+                                <Crown className="h-5 w-5 text-yellow-500" />
+                              )}
                           </div>
+                        </td>
 
-                          {player.rank === 1 && (
-                            <Crown className="h-5 w-5 text-yellow-500" />
-                          )}
-                        </div>
-                      </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 font-bold text-green-900">
+                              {player.playerName
+                                .split(" ")
+                                .map(
+                                  (name) =>
+                                    name[0]
+                                )
+                                .join("")
+                                .substring(0, 2)
+                                .toUpperCase()}
+                            </div>
 
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 font-bold text-green-900">
-                            {player.playerName
-                              .split(" ")
-                              .map(
-                                (name) =>
-                                  name[0]
-                              )
-                              .join("")
-                              .substring(0, 2)
-                              .toUpperCase()}
-                          </div>
-
-                          <div>
-                            <div className="font-bold text-slate-900">
-                              {player.playerName}
+                            <div>
+                              <div className="font-bold text-slate-900">
+                                {player.playerName}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-6 py-5">
-                        <span className="font-semibold text-slate-700">
-                          {player.weeksPlayed}
-                        </span>
-                      </td>
+                        <td className="px-6 py-5">
+                          <span className="font-semibold text-slate-700">
+                            {player.weeksPlayed}
+                          </span>
+                        </td>
 
-                      <td className="px-6 py-5">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 font-bold text-green-900">
-                          <Medal className="h-4 w-4 text-yellow-500" />
+                        <td className="px-6 py-5">
+                          <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 font-bold text-green-900">
+                            <Medal className="h-4 w-4 text-yellow-500" />
 
-                          {player.totalScore} pts
-                        </div>
-                      </td>
-                    </tr>
-                  )
+                            {player.totalScore} pts
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
                 )
               )}
             </tbody>
