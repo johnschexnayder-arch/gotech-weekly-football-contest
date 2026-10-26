@@ -61,7 +61,7 @@ export default function PicksSubmittedModal({
           </div>
 
           <h2 className="mt-5 text-3xl font-black tracking-tight text-green-950">
-            PICKS ARE LOCKED IN!
+            Happy Halloween!
           </h2>
 
           <p className="mt-2 text-lg font-bold text-yellow-600">
