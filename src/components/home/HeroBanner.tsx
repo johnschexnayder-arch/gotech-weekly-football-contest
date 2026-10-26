@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -21,8 +22,7 @@ export default function HeroBanner({
 }: HeroBannerProps) {
   const hasWeek = weekNumber > 0;
 
-  const [picksComplete, setPicksComplete] =
-    useState(false);
+  const [picksComplete, setPicksComplete] = useState(false);
 
   const formattedDeadline = hasWeek
     ? new Date(deadline).toLocaleString("en-US", {
@@ -43,8 +43,7 @@ export default function HeroBanner({
       }
 
       try {
-        const storedPlayer =
-          localStorage.getItem("gotech_player");
+        const storedPlayer = localStorage.getItem("gotech_player");
 
         if (!storedPlayer) {
           setPicksComplete(false);
@@ -71,11 +70,7 @@ export default function HeroBanner({
 
         setPicksComplete(!!data);
       } catch (error) {
-        console.error(
-          "CHECK HOMEPAGE PICKS ERROR:",
-          error
-        );
-
+        console.error("CHECK HOMEPAGE PICKS ERROR:", error);
         setPicksComplete(false);
       }
     }
@@ -92,7 +87,7 @@ export default function HeroBanner({
       {/* Desktop background */}
       <div className="absolute inset-0 hidden lg:block">
         <Image
-          src="/images/gotech-football-field.png"
+          src="/images/Halloween-Endzone.png"
           alt=""
           fill
           priority
@@ -126,7 +121,6 @@ export default function HeroBanner({
                 <div className="text-xs font-black uppercase tracking-wide text-yellow-300">
                   Games
                 </div>
-
                 <div className="mt-1 text-3xl font-black">
                   {gameCount}
                 </div>
@@ -136,7 +130,6 @@ export default function HeroBanner({
                 <div className="text-xs font-black uppercase tracking-wide text-yellow-300">
                   Picks Close
                 </div>
-
                 <div className="mt-1 text-sm font-bold">
                   {formattedDeadline}
                 </div>
@@ -169,7 +162,7 @@ export default function HeroBanner({
         {/* Mobile football image */}
         <div className="relative mx-3 aspect-[1939/811] overflow-hidden rounded-2xl border border-yellow-400/20">
           <Image
-            src="/images/gotech-football-field.png"
+            src="/images/Halloween-Endzone.png"
             alt=""
             fill
             sizes="calc(100vw - 24px)"
@@ -187,7 +180,6 @@ export default function HeroBanner({
                 <div className="text-[9px] font-black uppercase tracking-wide text-yellow-300">
                   Games
                 </div>
-
                 <div className="mt-0.5 text-2xl font-black">
                   {gameCount}
                 </div>
@@ -197,7 +189,6 @@ export default function HeroBanner({
                 <div className="text-[9px] font-black uppercase tracking-wide text-yellow-300">
                   Picks Close
                 </div>
-
                 <div className="mt-0.5 text-xs font-bold">
                   {formattedDeadline}
                 </div>

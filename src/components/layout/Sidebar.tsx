@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -21,10 +22,10 @@ export default function Sidebar() {
   return (
     <aside className="gotech-sidebar hidden min-h-screen w-72 shrink-0 lg:flex lg:flex-col">
       <div className="gotech-sidebar-content flex min-h-screen flex-col">
-        <div className="border-b border-slate-200/70 bg-white/20 px-6 py-6 backdrop-blur-[1px]">
+        <div className="border-b border-slate-200/50 bg-transparent px-6 py-6">
           <img
-            src="/images/gotech-football.png"
-            alt="GOTECH Football"
+            src="/images/Pumpkin-Helmet.png"
+            alt="GOTECH Halloween Football"
             className="h-auto w-full object-contain"
           />
         </div>
