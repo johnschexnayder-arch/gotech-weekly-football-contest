@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from "react";
@@ -20,8 +21,8 @@ export default function PicksSubmittedModal({
     if (!open) return;
 
     const colors = [
-      "#0B5D3B",
-      "#F4C542",
+      "#461D7C",
+      "#FDD023",
       "#FFFFFF",
     ];
 
@@ -53,15 +54,17 @@ export default function PicksSubmittedModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm">
       <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
-        <div className="h-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400" />
+        <div className="h-2 bg-gradient-to-r from-purple-800 via-yellow-400 to-purple-800" />
 
         <div className="p-8 text-center">
           <div className="text-7xl drop-shadow-sm">
-            🏈
+            🐯
           </div>
 
-          <h2 className="mt-5 text-3xl font-black tracking-tight text-green-950">
-            Happy Halloween!
+          <h2 className="mt-5 text-3xl font-black tracking-tight text-purple-950">
+            Geaux Tigers!
+            <br />
+            Beat Bama!
           </h2>
 
           <p className="mt-2 text-lg font-bold text-yellow-600">
@@ -73,8 +76,8 @@ export default function PicksSubmittedModal({
             have been successfully saved.
           </p>
 
-          <div className="mt-6 inline-flex items-center rounded-full bg-green-100 px-6 py-3">
-            <span className="text-lg font-black text-green-900">
+          <div className="mt-6 inline-flex items-center rounded-full bg-purple-100 px-6 py-3">
+            <span className="text-lg font-black text-purple-900">
               ✓ {totalGames} / {totalGames} Games Complete
             </span>
           </div>
@@ -85,7 +88,7 @@ export default function PicksSubmittedModal({
 
           <button
             onClick={onClose}
-            className="mt-8 w-full rounded-2xl bg-gradient-to-r from-green-950 to-green-800 px-6 py-4 text-lg font-black uppercase tracking-wide text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl"
+            className="mt-8 w-full rounded-2xl bg-gradient-to-r from-purple-950 to-purple-800 px-6 py-4 text-lg font-black uppercase tracking-wide text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl"
           >
             Picks = In
           </button>

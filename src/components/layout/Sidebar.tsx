@@ -24,8 +24,8 @@ export default function Sidebar() {
       <div className="gotech-sidebar-content flex min-h-screen flex-col">
         <div className="border-b border-slate-200/50 bg-transparent px-6 py-6">
           <img
-            src="/images/Pumpkin-Helmet.png"
-            alt="GOTECH Halloween Football"
+            src="/images/gotech-football.png"
+            alt="GOTECH Football"
             className="h-auto w-full object-contain"
           />
         </div>
